@@ -1,0 +1,1617 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>404 — Campo de Asteroides</title>
+
+<meta name="robots" content="noindex, nofollow">
+
+<style>
+
+/* =====================================
+   CONFIGURAÇÕES GERAIS
+===================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    background: #050505;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+#game {
+    position: fixed;
+    inset: 0;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #151515 0%,
+            #070707 55%,
+            #000 100%
+        );
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+
+/* =====================================
+   INTERFACE
+===================================== */
+
+.interface {
+    position: fixed;
+    inset: 0;
+
+    pointer-events: none;
+
+    z-index: 5;
+}
+
+.top {
+    display: flex;
+    justify-content: space-between;
+
+    padding: 20px;
+
+    font-family: monospace;
+
+    font-size: 16px;
+}
+
+.green {
+    color: #00ff88;
+}
+
+.error404 {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    transform:
+        translate(-50%, -50%);
+
+    font-size:
+        clamp(120px, 25vw, 300px);
+
+    font-weight: 900;
+
+    color: transparent;
+
+    -webkit-text-stroke:
+        2px rgba(255,255,255,.05);
+
+    user-select: none;
+
+    z-index: 0;
+}
+
+.controls {
+    position: absolute;
+
+    bottom: 48px;
+
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+
+    color: #444;
+
+    font-family: monospace;
+
+    font-size: 12px;
+
+    text-align: center;
+}
+
+.message {
+    position: absolute;
+
+    bottom: 20px;
+
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+
+    width: 90%;
+
+    color: #555;
+
+    font-family: monospace;
+
+    font-size: 12px;
+
+    text-align: center;
+}
+
+
+/* =====================================
+   GAME OVER
+===================================== */
+
+.game-over {
+    position: fixed;
+
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background:
+        rgba(0,0,0,.82);
+
+    z-index: 10;
+
+    text-align: center;
+}
+
+.game-over-box {
+    background: #080808;
+
+    border: 1px solid #333;
+
+    padding: 35px;
+
+    min-width: 300px;
+}
+
+.game-over h1 {
+    font-size: 38px;
+
+    margin-bottom: 12px;
+}
+
+.game-over p {
+    color: #777;
+
+    line-height: 1.6;
+
+    margin-bottom: 20px;
+}
+
+
+/* =====================================
+   BOTÕES
+===================================== */
+
+button,
+.home {
+    border: none;
+
+    padding: 13px 20px;
+
+    background: white;
+
+    color: black;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+    display: inline-block;
+
+    margin: 5px;
+
+    transition: .2s;
+}
+
+button:hover,
+.home:hover {
+    transform:
+        translateY(-3px);
+
+    background: #00ff88;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================
+     ÁREA DO JOGO
+===================================== -->
+
+<div id="game">
+
+    <canvas id="canvas"></canvas>
+
+</div>
+
+
+<!-- =====================================
+     INTERFACE
+===================================== -->
+
+<div class="interface">
+
+    <div class="top">
+
+        <div>
+
+            <span class="green">
+                ian@portfolio:~$
+            </span>
+
+            404_GAME
+
+        </div>
+
+
+        <div>
+
+            SCORE:
+
+            <span id="score">
+                0
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="error404">
+        404
+    </div>
+
+
+    <div class="controls">
+
+        ← → ou A/D = mover
+        &nbsp; | &nbsp;
+        ESPAÇO = atirar
+
+    </div>
+
+
+    <div class="message">
+
+        ERROR: página não encontrada //
+        destruindo obstáculos...
+
+    </div>
+
+</div>
+
+
+<!-- =====================================
+     GAME OVER
+===================================== -->
+
+<div
+    class="game-over"
+    id="gameOver"
+>
+
+    <div class="game-over-box">
+
+        <h1>
+            GAME OVER
+        </h1>
+
+
+        <p>
+
+            A nave foi atingida.
+
+            <br>
+
+            Pontuação final:
+
+            <strong id="finalScore">
+                0
+            </strong>
+
+        </p>
+
+
+        <button
+            onclick="restartGame()"
+        >
+
+            Jogar novamente
+
+        </button>
+
+
+        <a
+            class="home"
+            href="/"
+        >
+
+            Voltar ao início
+
+        </a>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =====================================
+   CANVAS
+===================================== */
+
+const canvas =
+    document.getElementById("canvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+
+const scoreElement =
+    document.getElementById("score");
+
+const finalScore =
+    document.getElementById("finalScore");
+
+const gameOverScreen =
+    document.getElementById("gameOver");
+
+
+let width;
+let height;
+
+
+/* =====================================
+   TAMANHO DA TELA
+===================================== */
+
+function resize() {
+
+    width =
+        canvas.width =
+        window.innerWidth;
+
+    height =
+        canvas.height =
+        window.innerHeight;
+
+
+    player.x =
+        Math.min(
+            player.x,
+            width - 25
+        );
+
+}
+
+
+window.addEventListener(
+    "resize",
+    resize
+);
+
+
+/* =====================================
+   CONTROLES
+===================================== */
+
+const keys = {};
+
+
+document.addEventListener(
+    "keydown",
+    function(e) {
+
+        keys[
+            e.key.toLowerCase()
+        ] = true;
+
+
+        if (e.code === "Space") {
+
+            e.preventDefault();
+
+            keys.space = true;
+
+        }
+
+    }
+);
+
+
+document.addEventListener(
+    "keyup",
+    function(e) {
+
+        keys[
+            e.key.toLowerCase()
+        ] = false;
+
+
+        if (e.code === "Space") {
+
+            keys.space = false;
+
+        }
+
+    }
+);
+
+
+/* =====================================
+   JOGADOR
+===================================== */
+
+const player = {
+
+    x: window.innerWidth / 2,
+
+    y: window.innerHeight - 90,
+
+    width: 28,
+
+    height: 40,
+
+    speed: 7
+
+};
+
+
+/* =====================================
+   ESTADO DO JOGO
+===================================== */
+
+let score = 0;
+
+let gameRunning = true;
+
+
+/* =====================================
+   ESTRELAS
+===================================== */
+
+let stars = [];
+
+
+for (
+    let i = 0;
+    i < 150;
+    i++
+) {
+
+    stars.push({
+
+        x:
+            Math.random() * width,
+
+        y:
+            Math.random() * height,
+
+        size:
+            Math.random() * 2 + .3,
+
+        speed:
+            Math.random() * 1.8 + .3
+
+    });
+
+}
+
+
+/* =====================================
+   METEOROS
+===================================== */
+
+let meteors = [];
+
+let meteorSpawnTimer = 0;
+
+
+function createMeteor() {
+
+    const size =
+        Math.random() * 25 + 18;
+
+
+    meteors.push({
+
+        x:
+            Math.random() *
+            (width - size * 2)
+            + size,
+
+        y:
+            -size,
+
+        size:
+            size,
+
+        speed:
+            Math.random() * 3 + 2,
+
+        rotation:
+            Math.random() *
+            Math.PI * 2,
+
+        rotationSpeed:
+            (Math.random() - .5)
+            * .08
+
+    });
+
+}
+
+
+/* =====================================
+   TIROS
+===================================== */
+
+let bullets = [];
+
+let shootCooldown = 0;
+
+
+function shoot() {
+
+    if (
+        shootCooldown > 0
+    ) {
+
+        return;
+
+    }
+
+
+    bullets.push({
+
+        x:
+            player.x,
+
+        y:
+            player.y - 25,
+
+        width: 4,
+
+        height: 15,
+
+        speed: 12
+
+    });
+
+
+    shootCooldown = 8;
+
+}
+
+
+/* =====================================
+   EXPLOSÕES
+===================================== */
+
+let explosions = [];
+
+
+function createExplosion(
+    x,
+    y
+) {
+
+    explosions.push({
+
+        x: x,
+
+        y: y,
+
+        radius: 5,
+
+        life: 20
+
+    });
+
+}
+
+
+/* =====================================
+   DESENHAR ESTRELAS
+===================================== */
+
+function drawStars() {
+
+    ctx.fillStyle =
+        "#ffffff";
+
+
+    stars.forEach(
+        function(star) {
+
+            ctx.globalAlpha =
+                Math.random() * .6 + .2;
+
+
+            ctx.beginPath();
+
+
+            ctx.arc(
+
+                star.x,
+
+                star.y,
+
+                star.size,
+
+                0,
+
+                Math.PI * 2
+
+            );
+
+
+            ctx.fill();
+
+
+            star.y +=
+                star.speed;
+
+
+            if (
+                star.y > height
+            ) {
+
+                star.y = 0;
+
+                star.x =
+                    Math.random() * width;
+
+            }
+
+        }
+    );
+
+
+    ctx.globalAlpha = 1;
+
+}
+
+
+/* =====================================
+   DESENHAR NAVE
+===================================== */
+
+function drawPlayer() {
+
+    ctx.save();
+
+
+    ctx.translate(
+
+        player.x,
+
+        player.y
+
+    );
+
+
+    ctx.shadowBlur = 20;
+
+    ctx.shadowColor =
+        "#00ff88";
+
+
+    ctx.fillStyle =
+        "#ffffff";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+        0,
+        -22
+    );
+
+
+    ctx.lineTo(
+        16,
+        20
+    );
+
+
+    ctx.lineTo(
+        0,
+        12
+    );
+
+
+    ctx.lineTo(
+        -16,
+        20
+    );
+
+
+    ctx.closePath();
+
+
+    ctx.fill();
+
+
+    /* Motor */
+
+    ctx.shadowColor =
+        "#00ff88";
+
+    ctx.fillStyle =
+        "#00ff88";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+        -7,
+        16
+    );
+
+
+    ctx.lineTo(
+
+        0,
+
+        30 +
+        Math.random() * 10
+
+    );
+
+
+    ctx.lineTo(
+        7,
+        16
+    );
+
+
+    ctx.closePath();
+
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+}
+
+
+/* =====================================
+   DESENHAR METEORO
+===================================== */
+
+function drawMeteor(
+    meteor
+) {
+
+    ctx.save();
+
+
+    ctx.translate(
+
+        meteor.x,
+
+        meteor.y
+
+    );
+
+
+    ctx.rotate(
+
+        meteor.rotation
+
+    );
+
+
+    ctx.shadowBlur = 15;
+
+    ctx.shadowColor =
+        "#999";
+
+
+    ctx.fillStyle =
+        "#777";
+
+
+    ctx.beginPath();
+
+
+    const points = 9;
+
+
+    for (
+        let i = 0;
+        i < points;
+        i++
+    ) {
+
+        const angle =
+            (
+                Math.PI * 2 /
+                points
+            ) * i;
+
+
+        const radius =
+            meteor.size *
+            (
+                .75 +
+                Math.random() * .25
+            );
+
+
+        const x =
+            Math.cos(angle)
+            * radius;
+
+
+        const y =
+            Math.sin(angle)
+            * radius;
+
+
+        if (
+            i === 0
+        ) {
+
+            ctx.moveTo(
+                x,
+                y
+            );
+
+        } else {
+
+            ctx.lineTo(
+                x,
+                y
+            );
+
+        }
+
+    }
+
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    /* Crater 1 */
+
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle =
+        "#444";
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+
+        -meteor.size * .3,
+
+        -meteor.size * .2,
+
+        meteor.size * .18,
+
+        0,
+
+        Math.PI * 2
+
+    );
+
+
+    ctx.fill();
+
+
+    /* Crater 2 */
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+
+        meteor.size * .25,
+
+        meteor.size * .3,
+
+        meteor.size * .12,
+
+        0,
+
+        Math.PI * 2
+
+    );
+
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+}
+
+
+/* =====================================
+   DESENHAR TIROS
+===================================== */
+
+function drawBullets() {
+
+    bullets.forEach(
+        function(bullet) {
+
+            ctx.save();
+
+
+            ctx.shadowBlur = 15;
+
+            ctx.shadowColor =
+                "#00ff88";
+
+
+            ctx.fillStyle =
+                "#00ff88";
+
+
+            ctx.fillRect(
+
+                bullet.x - 2,
+
+                bullet.y,
+
+                bullet.width,
+
+                bullet.height
+
+            );
+
+
+            ctx.restore();
+
+        }
+    );
+
+}
+
+
+/* =====================================
+   DESENHAR EXPLOSÕES
+===================================== */
+
+function drawExplosions() {
+
+    explosions.forEach(
+        function(explosion) {
+
+            ctx.save();
+
+
+            ctx.globalAlpha =
+                explosion.life / 20;
+
+
+            ctx.strokeStyle =
+                "#ffffff";
+
+
+            ctx.lineWidth = 2;
+
+
+            ctx.shadowBlur = 20;
+
+            ctx.shadowColor =
+                "#00ff88";
+
+
+            ctx.beginPath();
+
+
+            ctx.arc(
+
+                explosion.x,
+
+                explosion.y,
+
+                explosion.radius,
+
+                0,
+
+                Math.PI * 2
+
+            );
+
+
+            ctx.stroke();
+
+
+            ctx.restore();
+
+        }
+    );
+
+
+    ctx.globalAlpha = 1;
+
+}
+
+
+/* =====================================
+   COLISÃO NAVE / METEORO
+===================================== */
+
+function playerCollision(
+    meteor
+) {
+
+    const dx =
+        Math.abs(
+            meteor.x -
+            player.x
+        );
+
+
+    const dy =
+        Math.abs(
+            meteor.y -
+            player.y
+        );
+
+
+    return (
+
+        dx <
+        meteor.size + 12
+
+        &&
+
+        dy <
+        meteor.size + 18
+
+    );
+
+}
+
+
+/* =====================================
+   COLISÃO TIRO / METEORO
+===================================== */
+
+function bulletCollision(
+    bullet,
+    meteor
+) {
+
+    const dx =
+        bullet.x -
+        meteor.x;
+
+
+    const dy =
+        bullet.y -
+        meteor.y;
+
+
+    const distance =
+        Math.sqrt(
+            dx * dx +
+            dy * dy
+        );
+
+
+    return (
+        distance <
+        meteor.size + 8
+    );
+
+}
+
+
+/* =====================================
+   ATUALIZAR JOGADOR
+===================================== */
+
+function updatePlayer() {
+
+    if (
+        keys["arrowleft"] ||
+        keys["a"]
+    ) {
+
+        player.x -=
+            player.speed;
+
+    }
+
+
+    if (
+        keys["arrowright"] ||
+        keys["d"]
+    ) {
+
+        player.x +=
+            player.speed;
+
+    }
+
+
+    /* Limites */
+
+    player.x =
+        Math.max(
+
+            25,
+
+            Math.min(
+
+                width - 25,
+
+                player.x
+
+            )
+
+        );
+
+
+    /* Atirar */
+
+    if (
+        keys.space
+    ) {
+
+        shoot();
+
+    }
+
+}
+
+
+/* =====================================
+   ATUALIZAR TIROS
+===================================== */
+
+function updateBullets() {
+
+    bullets.forEach(
+        function(bullet) {
+
+            bullet.y -=
+                bullet.speed;
+
+        }
+    );
+
+
+    bullets =
+        bullets.filter(
+            function(bullet) {
+
+                return (
+                    bullet.y > -30
+                );
+
+            }
+        );
+
+}
+
+
+/* =====================================
+   ATUALIZAR METEOROS
+===================================== */
+
+function updateMeteors() {
+
+    for (
+        let i = meteors.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const meteor =
+            meteors[i];
+
+
+        meteor.y +=
+            meteor.speed;
+
+
+        meteor.rotation +=
+            meteor.rotationSpeed;
+
+
+        /* Colisão com nave */
+
+        if (
+            playerCollision(
+                meteor
+            )
+        ) {
+
+            endGame();
+
+            return;
+
+        }
+
+
+        /* Saiu da tela */
+
+        if (
+            meteor.y >
+            height + meteor.size
+        ) {
+
+            meteors.splice(
+                i,
+                1
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =====================================
+   COLISÃO DOS TIROS
+===================================== */
+
+function checkBulletCollisions() {
+
+    for (
+        let i = meteors.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        for (
+            let j = bullets.length - 1;
+            j >= 0;
+            j--
+        ) {
+
+            if (
+                bulletCollision(
+
+                    bullets[j],
+
+                    meteors[i]
+
+                )
+            ) {
+
+                /* Explosão */
+
+                createExplosion(
+
+                    meteors[i].x,
+
+                    meteors[i].y
+
+                );
+
+
+                /* Pontuação */
+
+                score += 10;
+
+
+                scoreElement.textContent =
+                    score;
+
+
+                /* Remove meteoro */
+
+                meteors.splice(
+                    i,
+                    1
+                );
+
+
+                /* Remove tiro */
+
+                bullets.splice(
+                    j,
+                    1
+                );
+
+
+                break;
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =====================================
+   ATUALIZAR EXPLOSÕES
+===================================== */
+
+function updateExplosions() {
+
+    explosions.forEach(
+        function(explosion) {
+
+            explosion.radius +=
+                2;
+
+            explosion.life--;
+
+        }
+    );
+
+
+    explosions =
+        explosions.filter(
+            function(explosion) {
+
+                return (
+                    explosion.life > 0
+                );
+
+            }
+        );
+
+}
+
+
+/* =====================================
+   GERAR METEOROS
+===================================== */
+
+function spawnMeteors() {
+
+    meteorSpawnTimer++;
+
+
+    /*
+       Quanto maior a pontuação,
+       mais meteoros aparecem.
+    */
+
+    const spawnRate =
+        Math.max(
+
+            10,
+
+            24 -
+            Math.floor(
+                score / 100
+            )
+
+        );
+
+
+    if (
+        meteorSpawnTimer >=
+        spawnRate
+    ) {
+
+        createMeteor();
+
+
+        /*
+           Chance de aparecer
+           um segundo meteoro.
+        */
+
+        if (
+            Math.random() < .45
+        ) {
+
+            createMeteor();
+
+        }
+
+
+        meteorSpawnTimer = 0;
+
+    }
+
+
+    /*
+       Mantém vários meteoros
+       na tela.
+    */
+
+    if (
+        meteors.length < 5
+    ) {
+
+        createMeteor();
+
+    }
+
+}
+
+
+/* =====================================
+   GAME OVER
+===================================== */
+
+function endGame() {
+
+    gameRunning =
+        false;
+
+
+    finalScore.textContent =
+        score;
+
+
+    gameOverScreen.style.display =
+        "flex";
+
+}
+
+
+/* =====================================
+   REINICIAR
+===================================== */
+
+function restartGame() {
+
+    score = 0;
+
+
+    scoreElement.textContent =
+        "0";
+
+
+    meteors = [];
+
+    bullets = [];
+
+    explosions = [];
+
+
+    player.x =
+        width / 2;
+
+
+    shootCooldown = 0;
+
+    meteorSpawnTimer = 0;
+
+
+    gameRunning =
+        true;
+
+
+    gameOverScreen.style.display =
+        "none";
+
+}
+
+
+/* =====================================
+   LOOP PRINCIPAL
+===================================== */
+
+function update() {
+
+    if (
+        !gameRunning
+    ) {
+
+        return;
+
+    }
+
+
+    updatePlayer();
+
+    updateBullets();
+
+    updateMeteors();
+
+    checkBulletCollisions();
+
+    updateExplosions();
+
+    spawnMeteors();
+
+
+    /* Cooldown do tiro */
+
+    if (
+        shootCooldown > 0
+    ) {
+
+        shootCooldown--;
+
+    }
+
+}
+
+
+/* =====================================
+   GAME LOOP
+===================================== */
+
+function gameLoop() {
+
+    ctx.clearRect(
+
+        0,
+
+        0,
+
+        width,
+
+        height
+
+    );
+
+
+    drawStars();
+
+
+    meteors.forEach(
+        drawMeteor
+    );
+
+
+    drawBullets();
+
+
+    drawExplosions();
+
+
+    drawPlayer();
+
+
+    update();
+
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+
+/* =====================================
+   INICIAR
+===================================== */
+
+resize();
+
+gameLoop();
+
+</script>
+
+</body>
+</html>
+```

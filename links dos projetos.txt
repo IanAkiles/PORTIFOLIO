@@ -1,0 +1,41 @@
+LINKS DOS PROJETOS - IAN AKILES
+
+Rede Neural Quantica
+Site: Quantico Alfa
+Link: https://quanticoalfa.netlify.app/
+
+Portfolio IAN LAB
+Site: IAN LAB
+Link: https://ianakiles.com.br/
+
+Sua Trilha - TI
+Site: Introducao Lab TI
+Link: https://introducaolabti.netlify.app/
+
+Retro Pixel Studio Pro
+Site: Retro Pixel Studio
+Link: https://retrostudiobyakiles.netlify.app/
+
+Treino Explorer
+Site: Explorer Treino
+Link: https://explorertreino.netlify.app/
+
+Quiz: Meu Computador
+Site: Quiz de Informatica
+Link: https://quiziti.netlify.app/
+
+BarberPro
+Site: Borges Barber
+Link: https://borgesbarber.netlify.app/
+
+Sistema de Particulas
+Site: Modelador de Particulas
+Link: https://modeladordeparticulas.netlify.app/
+
+Burn
+Site: Burn - Black Hole Visualization
+Link: burn/index.html
+
+Vida de uma Singularidade
+Site: Vida Singularidade
+Link: https://vidasingularidade.netlify.app/
