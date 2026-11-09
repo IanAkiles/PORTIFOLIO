@@ -17,7 +17,7 @@
 </script>
 <link rel="icon" href="gif.gif" type="image/gif">
 <link rel="stylesheet" href="css/fonts.css">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/hero.css">
 
 <link rel="preload" as="image" href="media/hero-plate.jpg" fetchpriority="high">
@@ -84,44 +84,138 @@
   </div>
 </section>
 
-<div class="wrap">
-<section id="sobre"><p class="tag">sobre/</p><h2>Código limpo, interfaces densas, iteração rápida.</h2>
-<div class="cols"><div>
-<p>Acredito em código limpo, interfaces com alta densidade de informação e exploração prática: projetar, testar, estressar limites de usabilidade e iterar com velocidade e rigor.</p>
-<p>Meu interesse está em desenvolvimento web, interfaces técnicas, arquitetura de sistemas e experiências digitais autorais.</p></div>
-<dl><div><dt>nome</dt><dd>Ian Akiles Gonçalves Vieira</dd></div><div><dt>foco</dt><dd>Web / Sistemas / Experimentos</dd></div><div><dt>ambiente</dt><dd>Node / React / Navegador / IPC</dd></div><div><dt>metodologia</dt><dd>Empirismo radical</dd></div><div><dt>status</dt><dd>Construindo</dd></div></dl></div></section>
+<section id="sobre" class="section" aria-labelledby="sobre-title">
+  <div class="container">
+    <p class="tag">sobre/</p>
+    <h2 id="sobre-title">Código limpo, interfaces densas, iteração rápida.</h2>
+    <div class="about-grid">
+      <div class="about-copy">
+        <p>Acredito em código limpo, interfaces com alta densidade de informação e exploração prática: projetar, testar, estressar limites de usabilidade e iterar com velocidade e rigor.</p>
+        <p>Meu interesse está em desenvolvimento web, interfaces técnicas, arquitetura de sistemas e experiências digitais autorais.</p>
+      </div>
+      <div class="about-card">
+        <dl>
+          <div><dt>nome</dt><dd>Ian Akiles Gonçalves Vieira</dd></div>
+          <div><dt>foco</dt><dd>Web / Sistemas / Experimentos</dd></div>
+          <div><dt>ambiente</dt><dd>Node / React / Navegador / IPC</dd></div>
+          <div><dt>metodologia</dt><dd>Empirismo radical</dd></div>
+          <div><dt>status</dt><dd>Construindo</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
 
-<section id="projetos"><p class="tag">projetos/</p><h2>Coisas que construí, testei e às vezes quebrei.</h2>
-<p class="lead" style="margin-bottom:0">Do mais recente ao mais antigo. Clique em um card para ver detalhes.</p>
-<div class="grid" id="grid"></div></section>
+<section id="projetos" class="section" aria-labelledby="projetos-title">
+  <div class="container">
+    <p class="tag">projetos/</p>
+    <h2 id="projetos-title">Coisas que construí, testei e às vezes quebrei.</h2>
+    <p class="lead">Do mais recente ao mais antigo. Clique em um card para ver detalhes.</p>
+    <div class="project-grid" id="grid"></div>
+  </div>
+</section>
 
-<section id="stack"><p class="tag">ferramental/</p><h2>Stack por camada</h2>
-<div class="stack">
-<div><h3>frontend</h3><ul><li>HTML5 semântico, CSS3</li><li>JavaScript ES6+, TypeScript</li><li>React 18, Next.js</li><li>Three.js e WebGL</li></ul></div>
-<div><h3>backend</h3><ul><li>Node.js, Express, Fastify</li><li>Arquitetura RESTful</li><li>Electron (main + IPC)</li></ul></div>
-<div><h3>dados</h3><ul><li>SQL, PostgreSQL, SQLite</li><li>LocalStorage e IndexedDB</li><li>Cache offline-first</li></ul></div>
-<div><h3>ferramentas e ia</h3><ul><li>Git e GitHub</li><li>API do Google Gemini</li><li>Netlify e Vercel</li><li>PowerShell e Bash</li></ul></div>
-</div></section>
+<section id="stack" class="section" aria-labelledby="stack-title">
+  <div class="container">
+    <p class="tag">ferramental/</p>
+    <h2 id="stack-title">Stack por camada</h2>
+    <div class="stack-grid">
+      <div class="stack-col">
+        <h3>frontend</h3>
+        <ul><li>HTML5 semântico, CSS3</li><li>JavaScript ES6+, TypeScript</li><li>React 18, Next.js</li><li>Three.js e WebGL</li></ul>
+      </div>
+      <div class="stack-col">
+        <h3>backend</h3>
+        <ul><li>Node.js, Express, Fastify</li><li>Arquitetura RESTful</li><li>Electron (main + IPC)</li></ul>
+      </div>
+      <div class="stack-col">
+        <h3>dados</h3>
+        <ul><li>SQL, PostgreSQL, SQLite</li><li>LocalStorage e IndexedDB</li><li>Cache offline-first</li></ul>
+      </div>
+      <div class="stack-col">
+        <h3>ferramentas e ia</h3>
+        <ul><li>Git e GitHub</li><li>API do Google Gemini</li><li>Netlify e Vercel</li><li>PowerShell e Bash</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
 
-<section id="contato"><div class="contact-layout"><div><p class="tag">contato/</p><h2>Tem um projeto desafiador?</h2>
-<p class="lead">Se você tem um projeto experimental, sistema complexo ou produto digital para tirar do papel, fale comigo pelo canal de sua preferência.</p>
-<div class="contact-methods">
-<div class="input__container" data-contact-label="GITHUB"><div class="shadow__input" aria-hidden="true"></div><a class="input__button__shadow" href="https://github.com/IanAkiles" target="_blank" rel="noopener noreferrer" aria-label="Abrir GitHub" title="Abrir GitHub"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg></a><a class="input__search" href="https://github.com/IanAkiles" target="_blank" rel="noopener noreferrer">@IanAkiles</a></div>
-<div class="input__container" data-contact-label="LINKEDIN"><div class="shadow__input" aria-hidden="true"></div><a class="input__button__shadow" href="https://www.linkedin.com/in/ian-vieira-678958373" target="_blank" rel="noopener noreferrer" aria-label="Abrir LinkedIn" title="Abrir LinkedIn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg></a><a class="input__search" href="https://www.linkedin.com/in/ian-vieira-678958373" target="_blank" rel="noopener noreferrer">ian-vieira-678958373</a></div>
-<div class="input__container" data-contact-label="E-MAIL"><div class="shadow__input" aria-hidden="true"></div><a class="input__button__shadow" href="mailto:akilesian424@gmail.com" aria-label="Enviar e-mail" title="Enviar e-mail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg></a><a class="input__search" href="mailto:akilesian424@gmail.com">akilesian424@gmail.com</a></div>
-<div class="input__container" data-contact-label="WHATSAPP"><div class="shadow__input" aria-hidden="true"></div><a class="input__button__shadow" href="https://wa.me/5569993616007" target="_blank" rel="noopener noreferrer" aria-label="Abrir WhatsApp" title="Abrir WhatsApp"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg></a><a class="input__search" href="https://wa.me/5569993616007" target="_blank" rel="noopener noreferrer">+55 (69) 99361-6007</a></div>
-<div class="input__container" data-contact-label="IAN LAB"><div class="shadow__input" aria-hidden="true"></div><a class="input__button__shadow" href="https://ianakiles.com.br" target="_blank" rel="noopener noreferrer" aria-label="Abrir IAN LAB" title="Abrir IAN LAB"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg></a><a class="input__search" href="https://ianakiles.com.br" target="_blank" rel="noopener noreferrer">ianakiles.com.br</a></div>
-</div>
-</div><div class="contact-art"><div class="contact-animation-wrap"><video class="contact-animation" autoplay muted loop playsinline preload="metadata" poster="gif.gif?v=2" aria-label="Animação de agradecimento" src="contact-animation.mp4"></video><button class="video-play" type="button" hidden>Reproduzir animação</button></div><strong>Obrigado pela visitaaa!!!</strong></div></div></section>
-<footer>© 2026 Ian Akiles · <button id="cookie-settings" type="button">preferências de cookies</button> · <a class="btn-31" href="https://bug-bash.github.com/" target="_blank" rel="noopener noreferrer"><span class="text-container"><span class="text">Bug Bash ↗</span></span></a></footer>
-</div>
+<section id="contato" class="section" aria-labelledby="contato-title">
+  <div class="container">
+    <div class="contact-layout">
+      <div>
+        <p class="tag">contato/</p>
+        <h2 id="contato-title">Tem um projeto desafiador?</h2>
+        <p class="lead">Se você tem um projeto experimental, sistema complexo ou produto digital para tirar do papel, fale comigo pelo canal de sua preferência.</p>
+        <div class="contact-methods">
+          <a class="contact-card" href="https://github.com/IanAkiles" target="_blank" rel="noopener noreferrer">
+            <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg></span>
+            <span class="contact-meta"><span class="contact-label">GITHUB</span><span class="contact-value">@IanAkiles</span></span>
+            <span class="contact-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="contact-card" href="https://www.linkedin.com/in/ian-vieira-678958373" target="_blank" rel="noopener noreferrer">
+            <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg></span>
+            <span class="contact-meta"><span class="contact-label">LINKEDIN</span><span class="contact-value">ian-vieira-678958373</span></span>
+            <span class="contact-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="contact-card" href="mailto:akilesian424@gmail.com">
+            <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="m3.5 7 7.4 5.5a2 2 0 0 0 2.2 0L20.5 7"/></svg></span>
+            <span class="contact-meta"><span class="contact-label">E-MAIL</span><span class="contact-value">akilesian424@gmail.com</span></span>
+            <span class="contact-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="contact-card" href="https://wa.me/5569993616007" target="_blank" rel="noopener noreferrer">
+            <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 9.5c0 4 2 6 6 6"/><path d="M8.5 9.5c0-1 .8-1.5 1.5-1.5l.8 1.8-.9.9c.4 1.1 1.3 2 2.4 2.4l.9-.9 1.8.8c0 .7-.5 1.5-1.5 1.5"/></svg></span>
+            <span class="contact-meta"><span class="contact-label">WHATSAPP</span><span class="contact-value">+55 (69) 99361-6007</span></span>
+            <span class="contact-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="contact-card" href="https://ianakiles.com.br" target="_blank" rel="noopener noreferrer">
+            <span class="contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></span>
+            <span class="contact-meta"><span class="contact-label">IAN LAB</span><span class="contact-value">ianakiles.com.br</span></span>
+            <span class="contact-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+      <div class="contact-art">
+        <div class="contact-animation-wrap">
+          <video class="contact-animation" autoplay muted loop playsinline preload="metadata" poster="gif.gif?v=2" aria-label="Animação de agradecimento" src="contact-animation.mp4"></video>
+          <button class="video-play" type="button" aria-pressed="true">Pausar animação</button>
+        </div>
+        <strong>Obrigado pela visitaaa!!!</strong>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer" id="rodape">
+  <div class="container footer-legal">
+    <p>© 2026 Ian Akiles</p>
+    <p><button id="cookie-settings" type="button">preferências de cookies</button> · <a href="https://bug-bash.github.com/" target="_blank" rel="noopener noreferrer">Bug Bash ↗</a></p>
+  </div>
+</footer>
 
 <aside id="cookie-notice" role="region" aria-label="Aviso de cookies" hidden>
 <p>Este site usa apenas um cookie essencial para lembrar sua preferência. Não usamos cookies de análise nem de publicidade.</p>
 <button id="cookie-acknowledge" type="button">Entendi</button>
 </aside>
-<dialog id="dlg"><button class="x" aria-label="Fechar" id="cls">✕</button><div class="m"><div class="mv" id="mv"></div><div class="mc" id="mc"></div></div></dialog>
-<div id="trail" aria-hidden="true"></div>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <button class="dialog-close" id="dlg-close" type="button" aria-label="Fechar detalhes do projeto">✕</button>
+  <div class="dialog-grid">
+    <div class="dialog-media"><img id="dlg-img" alt="" width="756" height="546" loading="lazy" decoding="async"></div>
+    <div class="dialog-body">
+      <p class="tag" id="dlg-cat">projeto/</p>
+      <h2 id="dlg-title"></h2>
+      <p class="dialog-site" id="dlg-site"></p>
+      <p class="dialog-desc" id="dlg-desc"></p>
+      <div class="chips" id="dlg-tags"></div>
+      <p class="dialog-meta" id="dlg-meta"></p>
+      <p class="dialog-maint" id="dlg-maint" role="note" hidden>EM MANUTENÇÃO</p>
+      <a class="btn-accent" id="dlg-link" href="#" target="_blank" rel="noopener noreferrer">abrir projeto ↗</a>
+    </div>
+  </div>
+</dialog>
+
 
 <script src="js/data.js"></script>
 <script src="js/hero.js"></script>

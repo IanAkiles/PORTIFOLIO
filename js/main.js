@@ -1,48 +1,176 @@
-const contactVideo=document.querySelector(".contact-animation");
-const contactVideoButton=document.querySelector(".contact-art .video-play");
-contactVideo.addEventListener("playing",()=>{contactVideoButton.hidden=true});
-contactVideo.addEventListener("error",()=>{
-contactVideoButton.textContent="Animação indisponível neste navegador";
-contactVideoButton.disabled=true;
-contactVideoButton.hidden=false;
-});
-contactVideoButton.addEventListener("click",()=>{
-contactVideo.play().then(()=>{contactVideoButton.hidden=true}).catch(()=>{contactVideoButton.hidden=false});
-});
-if(matchMedia("(prefers-reduced-motion:reduce)").matches){
-contactVideo.autoplay=false;
-contactVideo.removeAttribute("autoplay");
-contactVideo.pause();
-contactVideoButton.hidden=false;
-}
-else contactVideo.play().catch(()=>{contactVideoButton.hidden=false});
-const cookieKey="ian_cookie_notice";
-const cookieNotice=document.getElementById("cookie-notice");
-const hasCookieNotice=document.cookie.split("; ").some(cookie=>cookie.startsWith(`${cookieKey}=`));
-cookieNotice.hidden=hasCookieNotice;
-document.getElementById("cookie-acknowledge").addEventListener("click",()=>{
-document.cookie=`${cookieKey}=acknowledged; Max-Age=15552000; Path=/; SameSite=Lax${location.protocol==="https:"?"; Secure":""}`;
-cookieNotice.hidden=true;
-});
-document.getElementById("cookie-settings").addEventListener("click",()=>{cookieNotice.hidden=false});
+(() => {
+  "use strict";
 
-const g=document.getElementById("grid"),d=document.getElementById("dlg");
-P.forEach((p,i)=>{const n=String(i+1).padStart(3,"0"),b=document.createElement("button");b.className="card";
-b.innerHTML=`<div class="thumb">${projectImages[p[0]]?`<img src="${projectImages[p[0]]}" alt="Imagem do projeto ${p[0]}" loading="lazy">`:""}<span>${p[1].toUpperCase()}</span>${maintenance.has(p[0])?`<div class="maint" role="note"><span>EM MANUTENÇÃO</span></div>`:""}</div><div class="name"><span>${p[0]}</span><i>+</i></div>`;
-b.onclick=()=>{const s=getComputedStyle(b);document.getElementById("mv").style.setProperty("--m",s.getPropertyValue("--ac"));document.getElementById("mv").style.setProperty("--mt",s.getPropertyValue("--hc"));
-document.getElementById("mv").innerHTML=`<span>${p[1].toUpperCase()}</span><b>${n}</b>`;
-document.getElementById("mc").innerHTML=`<h2 style="margin:0">${p[0]}</h2><p class="mono" style="font-size:13px">${p[2]}</p>${maintenance.has(p[0])?`<p class="mono" role="status" style="font-size:12px;display:inline-block;padding:.3rem .6rem;background:#f5c518;color:#111;font-weight:700;letter-spacing:.1em">EM MANUTENÇÃO</p>`:""}<p class="mono" style="font-size:12px">${[p[6],p[7]].filter(Boolean).join(" · ")}</p><p>${p[3]}</p><div class="chips">${p[4].map(t=>`<span>${t}</span>`).join("")}</div>${p[5]?`<a class="btn" href="${p[5]}" target="_blank" rel="noopener">abrir projeto ↗</a>`:`<button class="btn" disabled style="opacity:.6">sem link público</button>`}`;d.showModal()};g.appendChild(b)});
-document.getElementById("cls").onclick=()=>d.close();
-d.addEventListener("click",e=>{if(e.target===d)d.close()});
-// rastro do cursor
-if(matchMedia("(pointer:fine)").matches&&!matchMedia("(prefers-reduced-motion:reduce)").matches){
-const t=document.getElementById("trail"),characters=["}","]","/","=","+","-","|","{",";"],colors=[["#e63946","#fff"],["#f4a261","#171717"],["#e9c46a","#171717"],["#2a9d8f","#fff"],["#00a6fb","#111"],["#7b2cbf","#fff"],["#ff4d9d","#171717"],["#6a994e","#111"],["#1d3557","#fff"]];
-let nextParticle=0;
-addEventListener("mousemove",e=>{
-const index=nextParticle++%characters.length,particle=document.createElement("i");
-particle.className="trail-particle";particle.textContent=characters[index];
-particle.style.setProperty("--trail-color",colors[index][0]);particle.style.setProperty("--trail-text",colors[index][1]);
-particle.style.left=e.clientX+"px";particle.style.top=e.clientY+"px";
-t.appendChild(particle);particle.addEventListener("animationend",()=>particle.remove(),{once:true});
-});
-}
+  /* --- aviso de cookies --- */
+  const cookieKey = "ian_cookie_notice";
+  const cookieNotice = document.getElementById("cookie-notice");
+  const cookieAck = document.getElementById("cookie-acknowledge");
+  const cookieSettings = document.getElementById("cookie-settings");
+
+  if (cookieNotice && cookieAck) {
+    const acknowledged = document.cookie
+      .split("; ")
+      .some((cookie) => cookie.startsWith(`${cookieKey}=`));
+
+    cookieNotice.hidden = acknowledged;
+
+    cookieAck.addEventListener("click", () => {
+      document.cookie = `${cookieKey}=acknowledged; Max-Age=15552000; Path=/; SameSite=Lax${
+        location.protocol === "https:" ? "; Secure" : ""
+      }`;
+      cookieNotice.hidden = true;
+      cookieAck.blur();
+    });
+
+    cookieSettings?.addEventListener("click", () => {
+      cookieNotice.hidden = false;
+      cookieAck.focus();
+    });
+  }
+
+  /* --- vídeo de contato --- */
+  const contactVideo = document.querySelector(".contact-animation");
+  const videoButton = document.querySelector(".contact-art .video-play");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  if (contactVideo && videoButton) {
+    const syncVideoButton = () => {
+      const paused = contactVideo.paused;
+      videoButton.textContent = paused ? "Reproduzir animação" : "Pausar animação";
+      videoButton.setAttribute("aria-pressed", String(!paused));
+    };
+
+    videoButton.addEventListener("click", () => {
+      if (contactVideo.paused) {
+        contactVideo.play().catch(() => {});
+      } else {
+        contactVideo.pause();
+      }
+    });
+
+    contactVideo.addEventListener("play", syncVideoButton);
+    contactVideo.addEventListener("pause", syncVideoButton);
+    contactVideo.addEventListener("error", () => {
+      videoButton.disabled = true;
+      videoButton.textContent = "Animação indisponível";
+    });
+
+    if (reduceMotion.matches) {
+      contactVideo.autoplay = false;
+      contactVideo.removeAttribute("autoplay");
+      contactVideo.pause();
+    } else {
+      contactVideo.play().catch(() => {});
+    }
+
+    syncVideoButton();
+
+    if ("IntersectionObserver" in window && !reduceMotion.matches) {
+      new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting && !contactVideo.paused) {
+              contactVideo.dataset.autoResume = "1";
+              contactVideo.pause();
+            } else if (entry.isIntersecting && contactVideo.dataset.autoResume === "1") {
+              delete contactVideo.dataset.autoResume;
+              contactVideo.play().catch(() => {});
+            }
+          });
+        },
+        { threshold: 0.15 }
+      ).observe(contactVideo);
+    }
+  }
+
+  /* --- projetos --- */
+  const grid = document.getElementById("grid");
+  const dialog = document.getElementById("dlg");
+  const closeButton = document.getElementById("dlg-close");
+  const media = document.getElementById("dlg-img");
+  const category = document.getElementById("dlg-cat");
+  const title = document.getElementById("dlg-title");
+  const site = document.getElementById("dlg-site");
+  const description = document.getElementById("dlg-desc");
+  const tags = document.getElementById("dlg-tags");
+  const meta = document.getElementById("dlg-meta");
+  const maint = document.getElementById("dlg-maint");
+  const link = document.getElementById("dlg-link");
+
+  let lastTrigger = null;
+
+  const iconPlay = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+
+  const openProject = (project, trigger) => {
+    if (!dialog) return;
+
+    lastTrigger = trigger;
+    media.src = project.capa;
+    media.alt = `Capa do projeto ${project.titulo}`;
+    category.textContent = `${project.categoria}/`;
+    title.textContent = project.titulo;
+    site.textContent = project.site;
+    description.textContent = project.descricao;
+    tags.innerHTML = project.tags.map((tag) => `<span>${tag}</span>`).join("");
+    meta.textContent = [project.periodo, project.instituicao].filter(Boolean).join(" · ");
+    maint.hidden = !project.manutencao;
+
+    if (project.url) {
+      link.hidden = false;
+      link.href = project.url;
+
+      if (/^https?:/i.test(project.url)) {
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "abrir projeto ↗";
+      } else {
+        link.removeAttribute("target");
+        link.removeAttribute("rel");
+        link.textContent = "abrir projeto →";
+      }
+    } else {
+      link.hidden = true;
+      link.removeAttribute("href");
+    }
+
+    dialog.showModal();
+    closeButton.focus();
+  };
+
+  if (grid && dialog) {
+    const projects = typeof PROJECTS !== "undefined" ? PROJECTS : [];
+
+    projects.forEach((project) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "project-card";
+      card.setAttribute("aria-haspopup", "dialog");
+      card.setAttribute("aria-label", `${project.titulo} — ${project.categoria}. Ver detalhes`);
+      card.innerHTML = `
+        <img src="${project.capa}" alt="" loading="lazy" decoding="async" width="756" height="546">
+        <span class="project-card-cat">${project.categoria}</span>
+        <span class="maint" role="note"${project.manutencao ? "" : " hidden"}>EM MANUTENÇÃO</span>
+        <span class="project-card-meta">
+          <span class="project-card-badge" aria-hidden="true">${iconPlay}</span>
+          <span>
+            <span class="project-card-title">${project.titulo}</span>
+            <span class="project-card-site">${project.site}</span>
+          </span>
+        </span>`;
+
+      card.addEventListener("click", () => openProject(project, card));
+      grid.appendChild(card);
+    });
+
+    closeButton.addEventListener("click", () => dialog.close());
+
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+
+    dialog.addEventListener("close", () => {
+      lastTrigger?.focus();
+      lastTrigger = null;
+    });
+  }
+})();

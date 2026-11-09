@@ -163,8 +163,3 @@ const PROJECTS = [
     "manutencao": false
   }
 ];
-
-// Compatibilidade temporária com o render antigo (Fase 1).
-const projectImages = Object.fromEntries(PROJECTS.map(p => [p.titulo, p.capa]));
-const P = PROJECTS.map(p => [p.titulo, p.categoria, p.subtitulo, p.descricao, p.tags, p.url, p.periodo, p.instituicao]);
-const maintenance = new Set(PROJECTS.filter(p => p.manutencao).map(p => p.titulo));
