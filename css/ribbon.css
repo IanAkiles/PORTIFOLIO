@@ -3,7 +3,7 @@
   position: relative;
   padding: 0;
   border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  background: transparent;
 }
 
 .ribbon-fallback {
@@ -21,7 +21,7 @@
   min-height: 620px;
   overflow: hidden;
   isolation: isolate;
-  background: #060907;
+  background: transparent;
   color: #f1f5f2;
 }
 

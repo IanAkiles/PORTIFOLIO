@@ -39,10 +39,6 @@ let THREE;
   let renderer;
   let scene;
   let camera;
-  let mirrorCamera;
-  let reflectionTarget;
-  let floor;
-  let floorMaterial;
   let cards = [];
   let disposed = false;
   let initialized = false;
@@ -331,74 +327,6 @@ let THREE;
     }
   `;
 
-  const floorVertex = /* glsl */ `
-    uniform float u_o;
-    uniform float u_leanA;
-    uniform float u_leanW;
-
-    varying vec2 vUv;
-    varying vec3 vWorld;
-    varying float vFar;
-
-    float ramp(float s) {
-      s = clamp(s, -1.0, 1.0);
-      return s * (1.5 - 0.5 * s * s);
-    }
-
-    void main() {
-      vUv = uv;
-      vec4 world = modelMatrix * vec4(position, 1.0);
-      vec3 w = world.xyz;
-      w.z += u_leanA * ramp(w.x / u_leanW);
-      vFar = -w.z / u_o;
-      vWorld = w;
-      gl_Position = projectionMatrix * viewMatrix * vec4(w, 1.0);
-    }
-  `;
-
-  const floorFragment = /* glsl */ `
-    uniform sampler2D u_reflection;
-    uniform float u_alpha;
-    uniform float u_cellsX;
-    uniform float u_cellsY;
-    uniform float u_line;
-    uniform float u_lightX;
-    uniform mat4 u_mirrorVP;
-
-    varying vec2 vUv;
-    varying vec3 vWorld;
-    varying float vFar;
-
-    void main() {
-      float fade = 1.0 - smoothstep(0.2, 0.95, vFar);
-      vec3 tintA = vec3(0.0);
-      vec3 tintB = vec3(0.0);
-      vec3 col = mix(tintA, tintB, smoothstep(0.0, 0.8, vFar));
-      col *= 1.0 - 0.55 * exp(-14.0 * abs(vFar));
-
-      vec2 g = vec2(vUv.x * u_cellsX, vFar * u_cellsY);
-      vec2 fw = max(fwidth(g) * 1.5, vec2(0.0001));
-      vec2 lines = 1.0 - smoothstep(vec2(0.0), fw, abs(fract(g) - 0.5));
-      float line = max(lines.x, lines.y);
-      col += line * u_line * fade;
-
-      vec3 wp = vWorld;
-      wp.x -= (wp.x - u_lightX) * 0.35 * abs(vFar);
-      vec4 clip = u_mirrorVP * vec4(wp, 1.0);
-      vec2 ruv = clip.xy / max(clip.w, 0.0001) * 0.5 + 0.5;
-      float weight = vFar > 0.0 ? exp(-6.0 * vFar) : exp(2.2 * vFar);
-      float edges = smoothstep(0.0, 0.1, ruv.x)
-        * smoothstep(0.0, 0.1, 1.0 - ruv.x)
-        * smoothstep(0.0, 0.1, ruv.y)
-        * smoothstep(0.0, 0.1, 1.0 - ruv.y);
-      vec3 reflection = texture2D(u_reflection, clamp(ruv, 0.002, 0.998)).rgb;
-
-      col += reflection * line * 0.5 * weight * edges * fade;
-
-      gl_FragColor = vec4(col, u_alpha * fade);
-    }
-  `;
-
   /* ------------------------------------------------------------------ */
   /* boot                                                                */
   /* ------------------------------------------------------------------ */
@@ -446,7 +374,8 @@ let THREE;
     let gl = null;
     try {
       gl = canvas.getContext("webgl2", {
-        alpha: false,
+        alpha: true,
+        premultipliedAlpha: true,
         antialias: true,
         depth: true,
         stencil: false,
@@ -465,10 +394,11 @@ let THREE;
       canvas,
       context: gl,
       antialias: true,
-      alpha: false,
+      alpha: true,
+      premultipliedAlpha: true,
       powerPreference: "high-performance"
     });
-    renderer.setClearColor(0x000000, 1);
+    renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
     try {
@@ -480,7 +410,6 @@ let THREE;
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 2000);
     camera.position.set(0, 0, CAM_Z);
-    mirrorCamera = camera.clone();
 
     await Promise.race([
       document.fonts.load('400 18px "Inter Tight"'),
@@ -564,35 +493,6 @@ let THREE;
       };
     });
 
-    floorMaterial = new THREE.ShaderMaterial({
-      vertexShader: floorVertex,
-      fragmentShader: floorFragment,
-      transparent: true,
-      depthTest: false,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      extensions: { derivatives: true },
-      uniforms: {
-        u_reflection: { value: null },
-        u_alpha: { value: 0 },
-        u_cellsX: { value: 1 },
-        u_cellsY: { value: 1 },
-        u_line: { value: 0.08 },
-        u_o: { value: 1 },
-        u_leanA: { value: 0 },
-        u_leanW: { value: 1 },
-        u_lightX: { value: -1 },
-        u_mirrorVP: { value: new THREE.Matrix4() }
-      }
-    });
-
-    floor = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 48, 24), floorMaterial);
-    floor.rotation.x = -Math.PI / 2;
-    floor.frustumCulled = false;
-    floor.renderOrder = -1;
-    floor.visible = false;
-    scene.add(floor);
-
     resize();
     initialiseStart();
     renderer.setSize(vw, vh, false);
@@ -609,8 +509,6 @@ let THREE;
       window.__ribbon = {
         scene,
         camera,
-        floor,
-        floorMaterial,
         cards,
         state: () => ({
           current,
@@ -783,8 +681,6 @@ let THREE;
 
     camera.aspect = vw / vh;
     camera.updateProjectionMatrix();
-    mirrorCamera.aspect = camera.aspect;
-    mirrorCamera.updateProjectionMatrix();
 
     const gap = (isPhone ? 20 : 10) * U;
     let base = 0;
@@ -836,18 +732,6 @@ let THREE;
       drawOverlay(card);
     });
 
-    if (floor) buildFloor();
-
-    if (!isPhone) {
-      if (!reflectionTarget) makeReflectionTarget();
-      else {
-        reflectionTarget.setSize(
-          Math.max(2, Math.floor(vw / 2)),
-          Math.max(2, Math.floor(vh / 2))
-        );
-      }
-    }
-
     if (!initialized || modeChanged) {
       current = target = startForMode();
       pending = 0;
@@ -855,36 +739,6 @@ let THREE;
       const raw = targetFor(centredIndex);
       target = raw - Math.round((raw - current) / (loopLength || 1)) * (loopLength || 1);
     }
-  }
-
-  function buildFloor() {
-    if (!floor) return;
-
-    floor.visible = !isPhone;
-    if (isPhone) return;
-
-    const cardH = cards.length ? cards[0].cssH : 0;
-    const a = (-cardH * k) / 2 - 0.06 * H;
-    const o = 6 * H;
-    const near = Math.min(CAM_Z * (1 - Math.abs(a) / H) + 0.2 * H, CAM_Z * 0.8);
-
-    floor.position.set(0, a, (near - o) / 2);
-    floor.scale.set(W * 2 * 4, near + o, 1);
-
-    const mirrorY = a - 0.07 * H;
-    mirrorCamera.position.set(0, 2 * mirrorY, CAM_Z);
-    mirrorCamera.rotation.set(0, 0, 0);
-
-    const cell = 0.22 * H;
-    const u = floorMaterial.uniforms;
-    u.u_o.value = o;
-    u.u_leanA.value = W * -0.12;
-    u.u_leanW.value = W;
-    u.u_cellsX.value = (W * 2 * 4) / cell;
-    u.u_cellsY.value = o / cell;
-    u.u_line.value = 0.08;
-    u.u_lightX.value = W * -0.6;
-    u.u_alpha.value = 0;
   }
 
   /* ------------------------------------------------------------------ */
@@ -1057,26 +911,6 @@ let THREE;
       cards.forEach((card) => {
         card.material.uniforms.u_alpha.value = cardAlpha;
       });
-      if (floorMaterial) {
-        floorMaterial.uniforms.u_alpha.value = still
-          ? 0.9
-          : Math.min(0.9, (elapsed / 0.8) * 0.9);
-      }
-    }
-
-    if (!isPhone && floor && floor.visible && reflectionTarget) {
-      renderer.setRenderTarget(reflectionTarget);
-      renderer.setClearAlpha(0);
-      renderer.clear();
-      floor.visible = false;
-      renderer.render(scene, mirrorCamera);
-      floor.visible = true;
-      renderer.setRenderTarget(null);
-      renderer.setClearAlpha(1);
-      floorMaterial.uniforms.u_mirrorVP.value.multiplyMatrices(
-        mirrorCamera.projectionMatrix,
-        mirrorCamera.matrixWorldInverse
-      );
     }
 
     renderer.render(scene, camera);
@@ -1457,17 +1291,6 @@ let THREE;
       }
       /* ao sair de reduced motion, updateVideos cria os vídeos sob demanda */
     });
-  }
-
-  function makeReflectionTarget() {
-    reflectionTarget = new THREE.WebGLRenderTarget(
-      Math.max(2, Math.floor(vw / 2)),
-      Math.max(2, Math.floor(vh / 2)),
-      { depthBuffer: true, stencilBuffer: false }
-    );
-    reflectionTarget.texture.minFilter = THREE.LinearFilter;
-    reflectionTarget.texture.magFilter = THREE.LinearFilter;
-    floorMaterial.uniforms.u_reflection.value = reflectionTarget.texture;
   }
 
   function observeStage() {
