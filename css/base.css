@@ -513,7 +513,8 @@ button {
 
 /* --- modal --- */
 #dlg {
-  position: relative;
+  position: fixed;
+  inset: 0;
   width: min(calc(100% - 2rem), 960px);
   max-height: calc(100dvh - 2rem);
   margin: auto;

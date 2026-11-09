@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/hero.css">
 <link rel="stylesheet" href="css/footer.css">
+<link rel="stylesheet" href="css/ribbon.css">
 
 <link rel="preload" as="image" href="media/hero-plate.jpg" fetchpriority="high">
 <link rel="preload" as="font" href="fonts/grandstander-latin.woff2" type="font/woff2" crossorigin>
@@ -112,10 +113,30 @@
   </div>
 </section>
 
-<section id="projetos" class="section" aria-labelledby="projetos-title">
-  <div class="container">
+<section id="projetos" class="section ribbon-section" aria-label="Projetos">
+  <div class="ribbon-stage" id="ribbon-stage" hidden>
+    <canvas class="ribbon-canvas" id="ribbon-canvas" tabindex="0" role="group" aria-label="Galeria de projetos. Use as setas para navegar e Enter para ver detalhes."></canvas>
+    <div class="ribbon-loader" id="ribbon-loader" aria-hidden="true"><i></i><i></i><i></i></div>
+
+    <p class="ribbon-corner ribbon-tl" aria-hidden="true">projetos <span class="dim">/</span> 2026</p>
+    <p class="ribbon-corner ribbon-tr" aria-hidden="true">ian akiles</p>
+    <p class="ribbon-corner ribbon-bl" aria-hidden="true"><span id="ribbon-position">01</span> <span class="dim">/</span> <span id="ribbon-total">16</span></p>
+
+    <div class="ribbon-nav">
+      <span class="ribbon-hint" aria-hidden="true">arraste ou use <span class="dim">← →</span></span>
+      <button class="ribbon-arrow" id="ribbon-prev" type="button" aria-label="Projeto anterior">‹</button>
+      <button class="ribbon-arrow" id="ribbon-next" type="button" aria-label="Próximo projeto">›</button>
+    </div>
+
+    <div class="ribbon-index" id="ribbon-index">
+      <h2 id="projetos-title">Projetos</h2>
+      <ul id="ribbon-list"></ul>
+    </div>
+  </div>
+
+  <div class="container ribbon-fallback" id="ribbon-fallback">
     <p class="tag">projetos/</p>
-    <h2 id="projetos-title">Coisas que construí, testei e às vezes quebrei.</h2>
+    <h2>Coisas que construí, testei e às vezes quebrei.</h2>
     <p class="lead">Do mais recente ao mais antigo. Clique em um card para ver detalhes.</p>
     <div class="project-grid" id="grid"></div>
   </div>
@@ -246,6 +267,7 @@
 
 <script src="js/data.js"></script>
 <script src="js/hero.js"></script>
+<script type="module" src="js/ribbon.js"></script>
 <script src="js/footer.js"></script>
 <script src="js/main.js"></script>
 </body>

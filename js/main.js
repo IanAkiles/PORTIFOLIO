@@ -172,10 +172,37 @@
       grid.appendChild(card);
     });
 
+    window.IAN = window.IAN || {};
+    window.IAN.openProject = (index, trigger) => {
+      const project = projects[index];
+      if (project) openProject(project, trigger || null);
+    };
+
     closeButton.addEventListener("click", () => dialog.close());
 
     dialog.addEventListener("click", (event) => {
       if (event.target === dialog) dialog.close();
+    });
+
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key !== "Tab") return;
+
+      const focusables = Array.from(
+        dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      ).filter((element) => !element.disabled && element.getClientRects().length > 0);
+
+      if (!focusables.length) return;
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     });
 
     dialog.addEventListener("close", () => {
