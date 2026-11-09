@@ -161,5 +161,95 @@ const PROJECTS = [
     "instituicao": "Anhanguera Educacional",
     "capa": "vida singularidade.jfif",
     "manutencao": false
+  },
+  {
+    "titulo": "Garimpo Tech",
+    "site": "Garimpo Landing Page",
+    "categoria": "Tecnologia",
+    "subtitulo": "Descobertas para o seu universo tech",
+    "descricao": "Landing page de curadoria que reúne descobertas, ferramentas e referências do universo tech em um só lugar, sem excesso de ruído.",
+    "tags": [
+      "Web"
+    ],
+    "url": "https://ianakiles.github.io/garimpo_landingpage/",
+    "periodo": "",
+    "instituicao": "Projeto autoral",
+    "capa": "garimpo-tech.jpg",
+    "manutencao": false
+  },
+  {
+    "titulo": "StudyFlow",
+    "site": "StudyFlow",
+    "categoria": "Estudos",
+    "subtitulo": "Mais direção para sua rotina de estudos",
+    "descricao": "Página de apresentação de uma proposta para organizar a rotina de estudos com mais direção, foco e clareza sobre o que fazer em seguida.",
+    "tags": [
+      "Web"
+    ],
+    "url": "https://ianakiles.github.io/Studyflow/?v=9b729c2",
+    "periodo": "",
+    "instituicao": "Projeto autoral",
+    "capa": "studyflow.jpg",
+    "manutencao": false
+  },
+  {
+    "titulo": "RECALL",
+    "site": "RECALL",
+    "categoria": "Organização",
+    "subtitulo": "Ideias e projetos sempre por perto",
+    "descricao": "Interface pensada para manter ideias, referências e projetos reunidos e sempre à mão, reduzindo o atrito entre ter uma ideia e voltar a ela.",
+    "tags": [
+      "Web"
+    ],
+    "url": "https://ianakiles.github.io/RECALL/",
+    "periodo": "",
+    "instituicao": "Projeto autoral",
+    "capa": "recall.jpg",
+    "manutencao": false
+  },
+  {
+    "titulo": "Trilha de Sistemas",
+    "site": "Trilha de Sistemas",
+    "categoria": "Aprendizado",
+    "subtitulo": "Um caminho para desenvolver conhecimento",
+    "descricao": "Trilha de aprendizado que organiza conteúdos de sistemas em uma progressão visível, para tornar o estudo técnico menos disperso.",
+    "tags": [
+      "Web"
+    ],
+    "url": "https://ianakiles.github.io/trilha_aprendizado/",
+    "periodo": "",
+    "instituicao": "Projeto autoral",
+    "capa": "trilha-sistemas.jpg",
+    "manutencao": false
+  },
+  {
+    "titulo": "Seu Próximo Projeto",
+    "site": "Página de Orçamento",
+    "categoria": "Orçamento",
+    "subtitulo": "O primeiro passo começa com um orçamento",
+    "descricao": "Página para transformar uma ideia em conversa: o visitante entende o processo e dá o primeiro passo para tirar o projeto do papel.",
+    "tags": [
+      "Web"
+    ],
+    "url": "https://ianakiles.github.io/pagina_or-amento/",
+    "periodo": "",
+    "instituicao": "Projeto autoral",
+    "capa": "orcamento.jpg",
+    "manutencao": false
+  },
+  {
+    "titulo": "RetroStudio",
+    "site": "RetroStudio",
+    "categoria": "Criatividade",
+    "subtitulo": "Uma nova perspectiva com alma retrô",
+    "descricao": "Experiência web que aplica uma estética retrô à criação visual, com uma interface que valoriza textura, limitação e nostalgia.",
+    "tags": [
+      "Web"
+    ],
+    "url": "https://ianakiles.github.io/retro_studio/",
+    "periodo": "",
+    "instituicao": "Projeto autoral",
+    "capa": "retro-studio.jpg",
+    "manutencao": false
   }
 ];

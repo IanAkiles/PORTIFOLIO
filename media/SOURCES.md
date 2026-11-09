@@ -12,3 +12,7 @@ Arquivos baixados dos clipes fornecidos para o hero e o footer.
 | `footer-night.jpg` | frame extraído de `footer-1080.mp4` em 4,9 s (fallback noturno estático) |
 
 Os arquivos foram baixados e são servidos localmente para evitar dependência externa e permitir cache/preload controlados.
+
+## Capas dos projetos
+
+As capas `garimpo-tech.jpg`, `studyflow.jpg`, `recall.jpg`, `trilha-sistemas.jpg`, `orcamento.jpg` e `retro-studio.jpg` são recortes 768×256 do sprite `assets/projetos.png` (1536×1024, grade 2×4) do repositório https://github.com/IanAkiles/vejameusprojetos. O sprite reúne imagens ilustrativas geradas por IA fornecidas pelo autor; os recortes foram feitos apenas para uso local na galeria.
