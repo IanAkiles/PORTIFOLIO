@@ -1,22 +1,3 @@
-const heroVideo=document.querySelector(".hv video");
-const videoPlayButton=document.createElement("button");
-videoPlayButton.className="video-play";
-videoPlayButton.type="button";
-videoPlayButton.textContent="Reproduzir vídeo";
-videoPlayButton.hidden=true;
-heroVideo.parentElement.appendChild(videoPlayButton);
-heroVideo.addEventListener("playing",()=>{videoPlayButton.hidden=true});
-heroVideo.addEventListener("error",()=>{
-videoPlayButton.textContent="Vídeo indisponível neste navegador";
-videoPlayButton.disabled=true;
-videoPlayButton.hidden=false;
-});
-videoPlayButton.addEventListener("click",()=>{
-heroVideo.play().then(()=>{videoPlayButton.hidden=true}).catch(()=>{videoPlayButton.hidden=false});
-});
-heroVideo.removeAttribute("src");
-heroVideo.src="portfolio_video_1080x1920.mp4";
-heroVideo.play().catch(()=>{videoPlayButton.hidden=false});
 const contactVideo=document.querySelector(".contact-animation");
 const contactVideoButton=document.querySelector(".contact-art .video-play");
 contactVideo.addEventListener("playing",()=>{contactVideoButton.hidden=true});

@@ -18,21 +18,73 @@
 <link rel="icon" href="gif.gif" type="image/gif">
 <link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/hero.css">
 
+<link rel="preload" as="image" href="media/hero-plate.jpg" fetchpriority="high">
+<link rel="preload" as="font" href="fonts/grandstander-latin.woff2" type="font/woff2" crossorigin>
+<link rel="preload" as="font" href="fonts/inter-latin.woff2" type="font/woff2" crossorigin>
 </head>
 <body>
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<main id="conteudo">
+<section id="top" class="hero" aria-labelledby="hero-title">
+  <div class="hero-scene" aria-hidden="true">
+    <img class="hero-plate" src="media/hero-plate.jpg" alt="" width="2160" height="1920" fetchpriority="high" decoding="async">
+    <video class="hero-loop" muted loop playsinline preload="none" data-src="media/hero-loop.mp4" aria-hidden="true" tabindex="-1"></video>
+    <div class="hero-seam"></div>
+  </div>
+  <div class="hero-veil" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <a class="hero-logo" href="#top" aria-label="Ian Akiles — início">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 21v-8"/><path d="M12 14c0-3.3-2.7-6-6-6 0 3.3 2.7 6 6 6Z"/><path d="M12 12.5c0-4.1 3.3-7.5 7.5-7.5 0 4.1-3.3 7.5-7.5 7.5Z"/>
+      </svg>
+      <span>Ian Akiles</span>
+    </a>
+
+    <nav class="hero-nav" aria-label="Principal">
+      <a href="#sobre">Sobre</a><span aria-hidden="true">·</span><a href="#projetos">Projetos</a><span aria-hidden="true">·</span><a href="#stack">Ferramental</a><span aria-hidden="true">·</span><a href="#contato">Contato</a>
+    </nav>
+
+    <a class="hero-cta" href="#contato">Falar comigo</a>
+
+    <div class="hero-copy">
+      <p class="hero-kicker" data-enter="kicker">WEB &amp; SISTEMAS</p>
+      <h1 class="hero-title" id="hero-title">
+        <span class="line" data-enter="title">IAN <i>/</i></span>
+        <span class="line" data-enter="title">AKILES</span>
+      </h1>
+      <p class="hero-sub" data-enter="copy">Desenvolvedor de experiências digitais, sistemas e projetos experimentais que fogem do lugar-comum corporativo.<span class="hero-place">manaus, am / brasil</span></p>
+      <div class="hero-actions">
+        <a class="hero-btn hero-btn-primary" href="#projetos" data-enter="copy">Ver projetos</a>
+        <a class="hero-btn hero-btn-mint" href="#contato" data-enter="copy">Falar comigo</a>
+      </div>
+    </div>
+
+    <div class="hero-featured">
+      <div class="featured-head" data-enter="featured">
+        <h2>DESTAQUES</h2>
+        <a class="featured-link" href="#projetos">ver todos os projetos <span aria-hidden="true">›</span></a>
+      </div>
+      <div class="featured-track">
+        <a class="hero-card" href="https://quanticoalfa.netlify.app/" target="_blank" rel="noopener noreferrer" data-enter="card">
+          <img src="rede neural.jfif" alt="Capa do projeto Rede Neural Quântica" loading="eager" decoding="async">
+          <span class="hero-card-meta"><span class="hero-card-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="hero-card-title">Rede Neural Quântica</span></span>
+        </a>
+        <a class="hero-card" href="burn/index.html" data-enter="card">
+          <img src="buraco negro.png" alt="Capa do projeto Burn" loading="eager" decoding="async">
+          <span class="hero-card-meta"><span class="hero-card-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="hero-card-title">Burn</span></span>
+        </a>
+        <a class="hero-card" href="https://vidasingularidade.netlify.app/" target="_blank" rel="noopener noreferrer" data-enter="card">
+          <img src="vida singularidade.jfif" alt="Capa do projeto Vida de uma Singularidade" loading="eager" decoding="async">
+          <span class="hero-card-meta"><span class="hero-card-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="hero-card-title">Vida de uma Singularidade</span></span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <div class="wrap">
-<header><a href="#" class="logo">IAN<i>’</i>26</a>
-<nav><a href="#sobre">Sobre</a><a href="#projetos">Projetos</a><a href="#stack">Ferramental</a><a href="#contato">Contato</a></nav><a class="cta" href="#contato">Falar comigo ↗</a></header>
-
-<section class="hero">
-<div class="wm"><svg viewBox="0 0 1000 135" role="img" aria-label="Ian Akiles"><text x="0" y="122" textLength="925" lengthAdjust="spacingAndGlyphs">IAN AKILES</text><path d="M950 8h44v46c0 30-16 48-40 56l-8-18c14-6 20-14 20-24h-16z" fill="var(--accent)"/></svg></div>
-<div class="hg"><div class="hv"><video autoplay muted loop playsinline aria-label="Vídeo de destaque"></video></div>
-<aside class="hp"><div class="hm"><span>manaus, am / brasil</span><span>web &amp; sistemas <i></i></span></div>
-<p class="ht">Desenvolvedor de experiências digitais, sistemas e projetos experimentais que fogem do lugar-comum corporativo.</p>
-<div class="ears" aria-hidden="true"><span style="background:#543cee;height:40px"></span><span style="background:#88ea8e;height:49px"></span><span style="background:#d9b933;height:58px"></span><span style="background:#e55c89;height:67px"></span><span style="background:#a887f8;height:76px"></span><span style="background:#b35921;height:85px"></span><span style="background:#08872b;height:94px"></span></div>
-<a class="big" href="#projetos"><span>ver projetos</span><span>↗</span></a></aside></div></section>
-
 <section id="sobre"><p class="tag">sobre/</p><h2>Código limpo, interfaces densas, iteração rápida.</h2>
 <div class="cols"><div>
 <p>Acredito em código limpo, interfaces com alta densidade de informação e exploração prática: projetar, testar, estressar limites de usabilidade e iterar com velocidade e rigor.</p>
@@ -72,6 +124,7 @@
 <div id="trail" aria-hidden="true"></div>
 
 <script src="js/data.js"></script>
+<script src="js/hero.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
