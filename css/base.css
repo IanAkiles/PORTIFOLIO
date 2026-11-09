@@ -2,9 +2,10 @@
   --bg: #e9edec;
   --surface: #fff;
   --text: #000;
+  color-scheme: light dark;
   --muted: #58635b;
   --border: #d2d9d4;
-  --accent: #08872b;
+  --accent: #07701f;
   --accent-fg: #fff;
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
