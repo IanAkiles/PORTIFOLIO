@@ -50,18 +50,49 @@
   outline-offset: -8px;
 }
 
+/* --- véu do celular --- */
+.ribbon-veil {
+  display: none;
+}
+
+@media (max-width: 649px) {
+  .ribbon-veil {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, .77) 5%, rgba(0, 0, 0, .42) 10%, rgba(0, 0, 0, .14) 15%, rgba(0, 0, 0, .02) 20%, transparent 26%),
+      linear-gradient(to top, #000 0%, rgba(0, 0, 0, .77) 5%, rgba(0, 0, 0, .42) 10%, rgba(0, 0, 0, .14) 15%, rgba(0, 0, 0, .02) 20%, transparent 26%);
+  }
+}
+
 /* --- rótulos de canto --- */
 .ribbon-corner {
   position: absolute;
   z-index: 5;
   margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
   color: rgba(241, 245, 242, .88);
-  font: 500 max(10px, .667vw)/1.4 var(--sans);
-  letter-spacing: .01em;
+  font: 500 max(9px, .667vw)/1.4 "Inter Tight", var(--sans);
+  letter-spacing: 0;
   text-transform: uppercase;
+  text-decoration: none;
   pointer-events: none;
   opacity: 0;
   transition: opacity .6s ease .2s;
+}
+
+a.ribbon-corner {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+a.ribbon-corner:hover {
+  color: #6bff98;
 }
 
 .ribbon-ready .ribbon-corner {
@@ -107,8 +138,8 @@
 .ribbon-hint {
   margin-right: 6px;
   color: rgba(241, 245, 242, .58);
-  font: 500 max(9px, .6vw)/1 var(--mono);
-  letter-spacing: .06em;
+  font: 500 max(9px, .6vw)/1.4 "Inter Tight", var(--sans);
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -257,13 +288,13 @@
 /* --- responsivo --- */
 @media (max-width: 649px) {
   .ribbon-stage {
-    height: 78svh;
-    min-height: 520px;
+    height: 100svh;
+    min-height: 560px;
   }
 
   .ribbon-corner,
   .ribbon-hint {
-    font-size: max(9px, 2.4vw);
+    font-size: max(9px, 2.564vw);
   }
 
   .ribbon-tl {

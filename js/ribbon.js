@@ -20,7 +20,6 @@ import * as THREE from "./three.module.min.js";
         : [];
 
   if (!section || !stage || !canvas || !projects.length) return;
-  if (!supportsWebGL()) return;
 
   const reduceQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const reduce = () => reduceQuery.matches;
@@ -29,6 +28,13 @@ import * as THREE from "./three.module.min.js";
   const CAM_Z = 41.18;
   const TAN = Math.tan((FOV * Math.PI) / 360);
   const TAU = Math.PI * 2;
+  const PI = Math.PI;
+  const BANK = -0.16;
+  const REAR_Y = 0.1;
+  const REAR_Z = 0.2;
+  const VTWIST = 1.8;
+  const TAIL = 1.0;
+  const SHIFT = -0.2;
 
   let renderer;
   let scene;
@@ -39,6 +45,7 @@ import * as THREE from "./three.module.min.js";
   let floorMaterial;
   let cards = [];
   let disposed = false;
+  let initialized = false;
 
   let vw = 0;
   let vh = 0;
@@ -53,12 +60,19 @@ import * as THREE from "./three.module.min.js";
 
   let current = 0;
   let target = 0;
+  let pending = 0;
   let centredIndex = 0;
   let hovered = -1;
   let readyAt = 0;
   let active = true;
   let lastFrame = 0;
   let lastPosition = "";
+  let depth = 0;
+  let wrung = 0;
+  let frames = 0;
+
+  let lastWheelAt = 0;
+  let burstAt = 0;
 
   const pointer = { x: -1, y: -1, inside: false };
   let drag = null;
@@ -66,6 +80,19 @@ import * as THREE from "./three.module.min.js";
 
   const pad = (value) => String(value).padStart(2, "0");
   const mod = (value, length) => ((value % length) + length) % length;
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const smoothstep = (edge0, edge1, x) => {
+    const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
+    return t * t * (3 - 2 * t);
+  };
+  const ramp = (value) => {
+    const s = clamp(value, -1, 1);
+    return s * (1.5 - 0.5 * s * s);
+  };
+  const leanSlope = (value) => {
+    const s = clamp(value, -1, 1);
+    return 1.5 * (1 - s * s);
+  };
   const escapeHtml = (value) =>
     String(value).replace(/[&<>"']/g, (char) => ({
       "&": "&amp;",
@@ -75,13 +102,16 @@ import * as THREE from "./three.module.min.js";
       "'": "&#39;"
     })[char]);
 
-  function supportsWebGL() {
-    try {
-      const probe = document.createElement("canvas");
-      return Boolean(probe.getContext("webgl2") || probe.getContext("webgl"));
-    } catch {
-      return false;
-    }
+  function shapeCurve(q, c) {
+    const bowl = 1 - q * q;
+    const ess = Math.sin(PI * q);
+    return (bowl + (ess - bowl) * c) * Math.exp(-TAIL * q * q);
+  }
+
+  function shapeSlope(q, c) {
+    const bowl = -2 * q * (1 + TAIL * (1 - q * q));
+    const ess = PI * Math.cos(PI * q) - 2 * TAIL * q * Math.sin(PI * q);
+    return (bowl + (ess - bowl) * c) * Math.exp(-q * q);
   }
 
   function fail() {
@@ -112,6 +142,7 @@ import * as THREE from "./three.module.min.js";
     varying vec2 vUv;
     varying vec3 vWorld;
     varying float vRibbonZ;
+    varying float vHoverDome;
 
     const float PI = 3.141592653589793;
     const float BANK = -0.16;
@@ -142,10 +173,12 @@ import * as THREE from "./three.module.min.js";
       vUv = uv;
 
       vec3 pos = position;
-      float dome = u_hover * u_dent * u_res.y
-        * (1.0 - pow(2.0 * uv.x - 1.0, 2.0))
-        * (1.0 - pow(2.0 * uv.y - 1.0, 2.0));
-      pos.z -= dome;
+      float qx = 2.0 * uv.x - 1.0;
+      float qy = 2.0 * uv.y - 1.0;
+      float dome = (1.0 - qx * qx) * (1.0 - qy * qy);
+      float dent = u_hover * u_dent * u_res.y * dome;
+      pos.z -= dent;
+      vHoverDome = dent;
 
       vec4 world = modelMatrix * vec4(pos, 1.0);
       vec3 w = world.xyz;
@@ -172,15 +205,16 @@ import * as THREE from "./three.module.min.js";
       float shape = shapeCurve(q);
       curvedZ += -u_sheetD * shape;
 
-      if (u_leanA != 0.0) {
-        curvedZ += u_leanA * ramp(along / u_leanW);
-      }
       curvedY += u_diag * along;
 
       if (u_sheetV > 0.0) {
         float m = 1.0 - smoothstep(-1.0, 0.3, along / u_sheetW);
         curvedY += REAR_Y * u_sheetW * u_sheetV * m;
         curvedZ += REAR_Z * u_sheetW * u_sheetV * m;
+      }
+
+      if (u_leanA != 0.0) {
+        curvedZ += u_leanA * ramp(along / u_leanW);
       }
 
       w.y = curvedY;
@@ -206,11 +240,40 @@ import * as THREE from "./three.module.min.js";
     uniform float u_corner;
     uniform float u_alpha;
     uniform float u_shade;
+    uniform float u_shadeS;
     uniform float u_D;
+    uniform float u_sheetW;
+    uniform float u_sheetT;
+    uniform float u_sheetC;
+    uniform float u_sheetV;
+    uniform float u_leanA;
+    uniform float u_leanW;
+    uniform float u_axis;
+    uniform float u_hover;
+    uniform float u_dent;
+    uniform vec2 u_res;
 
     varying vec2 vUv;
     varying vec3 vWorld;
     varying float vRibbonZ;
+    varying float vHoverDome;
+
+    const float PI = 3.141592653589793;
+    const float BANK = -0.16;
+    const float VTWIST = 1.8;
+    const float TAIL = 1.0;
+    const float SHIFT = -0.2;
+
+    float shapeSlope(float q) {
+      float bowl = -2.0 * q * (1.0 + TAIL * (1.0 - q * q));
+      float ess = PI * cos(PI * q) - 2.0 * TAIL * q * sin(PI * q);
+      return mix(bowl, ess, u_sheetC) * exp(-q * q);
+    }
+
+    float leanSlope(float s) {
+      s = clamp(s, -1.0, 1.0);
+      return 1.5 * (1.0 - s * s);
+    }
 
     void main() {
       vec2 mediaUv = u_crop.xy + vUv * u_crop.zw;
@@ -218,11 +281,31 @@ import * as THREE from "./three.module.min.js";
       vec4 overlay = texture2D(u_overlay, vUv);
       vec3 rgb = mix(media.rgb, overlay.rgb, overlay.a);
 
-      float depth = clamp((u_D - vRibbonZ) / (2.0 * max(u_D, 0.0001)), 0.0, 1.0);
-      float dim = (u_shade * 0.55 + 0.12) * pow(depth, 1.2);
-      rgb = mix(rgb, vec3(0.059), clamp(dim, 0.0, 0.8));
+      float shadeDepth = clamp((u_D - vRibbonZ) / (2.0 * max(u_D, 0.0001)), 0.0, 1.0);
+      shadeDepth = clamp(shadeDepth + vHoverDome / max(2.0 * u_D, 0.0001), 0.0, 1.0);
+      rgb = mix(rgb, vec3(0.059), clamp(u_shade * 0.8 * pow(shadeDepth, u_shadeS), 0.0, 1.0));
 
-      vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
+      float wx = mix(vWorld.x, vWorld.y, u_axis);
+      float q = wx / u_sheetW * u_sheetT + SHIFT;
+      float slope = shapeSlope(q);
+
+      float dzdx = -u_D * slope * u_sheetT / u_sheetW;
+      if (u_leanA != 0.0) {
+        dzdx += (u_leanA / u_leanW) * leanSlope(wx / u_leanW);
+      }
+
+      float qx = 2.0 * vUv.x - 1.0;
+      float qy = 2.0 * vUv.y - 1.0;
+      float domeDx = u_hover * u_dent * u_res.y * (-4.0 * qx * (1.0 - qy * qy)) / max(u_res.x, 0.0001);
+      dzdx += domeDx;
+
+      float roll = BANK * slope / PI * u_sheetC;
+      if (u_sheetV > 0.0) {
+        roll += VTWIST * u_sheetV * smoothstep(0.3, 0.9, abs(wx / u_sheetW)) * sign(wx / u_sheetW);
+      }
+
+      vec3 n = normalize(vec3(-dzdx, -sin(roll), cos(roll)));
+      if (u_axis > 0.5) n = normalize(vec3(-sin(roll), -dzdx, cos(roll)));
       vec3 viewDir = normalize(cameraPosition - vWorld);
       if (dot(n, viewDir) < 0.0) n = -n;
 
@@ -235,8 +318,8 @@ import * as THREE from "./three.module.min.js";
 
       vec2 p = (vUv - 0.5) * vec2(u_aspect, 1.0) * 2.0;
       vec2 halfSize = vec2(u_aspect, 1.0) - u_corner;
-      vec2 q = abs(p) - halfSize;
-      float dist = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - u_corner;
+      vec2 d = abs(p) - halfSize;
+      float dist = length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - u_corner;
       float edges = 1.0 - smoothstep(-fwidth(dist), fwidth(dist), dist);
 
       float alpha = edges * u_alpha;
@@ -276,9 +359,8 @@ import * as THREE from "./three.module.min.js";
     uniform float u_alpha;
     uniform float u_cellsX;
     uniform float u_cellsY;
-    uniform float u_fadeStart;
-    uniform float u_fadeEnd;
     uniform float u_line;
+    uniform float u_lightX;
     uniform mat4 u_mirrorVP;
 
     varying vec2 vUv;
@@ -286,26 +368,30 @@ import * as THREE from "./three.module.min.js";
     varying float vFar;
 
     void main() {
-      float fade = 1.0 - smoothstep(u_fadeStart, u_fadeEnd, vFar);
-      vec3 col = vec3(0.0);
+      float fade = 1.0 - smoothstep(0.2, 0.95, vFar);
+      vec3 tintA = vec3(0.0);
+      vec3 tintB = vec3(0.0);
+      vec3 col = mix(tintA, tintB, smoothstep(0.0, 0.8, vFar));
+      col *= 1.0 - 0.55 * exp(-14.0 * abs(vFar));
 
       vec2 g = vec2(vUv.x * u_cellsX, vFar * u_cellsY);
       vec2 fw = max(fwidth(g) * 1.5, vec2(0.0001));
       vec2 lines = 1.0 - smoothstep(vec2(0.0), fw, abs(fract(g) - 0.5));
       float line = max(lines.x, lines.y);
-
       col += line * u_line * fade;
 
-      vec4 clip = u_mirrorVP * vec4(vWorld, 1.0);
+      vec3 wp = vWorld;
+      wp.x -= (wp.x - u_lightX) * 0.35 * abs(vFar);
+      vec4 clip = u_mirrorVP * vec4(wp, 1.0);
       vec2 ruv = clip.xy / max(clip.w, 0.0001) * 0.5 + 0.5;
-      float weight = vFar > 0.0 ? exp(-5.0 * vFar) : exp(1.6 * vFar);
-      float edges = smoothstep(0.0, 0.08, ruv.x)
-        * smoothstep(0.0, 0.08, 1.0 - ruv.x)
-        * smoothstep(0.0, 0.08, ruv.y)
-        * smoothstep(0.0, 0.08, 1.0 - ruv.y);
-      vec3 refl = texture2D(u_reflection, clamp(ruv, 0.002, 0.998)).rgb;
+      float weight = vFar > 0.0 ? exp(-6.0 * vFar) : exp(2.2 * vFar);
+      float edges = smoothstep(0.0, 0.1, ruv.x)
+        * smoothstep(0.0, 0.1, 1.0 - ruv.x)
+        * smoothstep(0.0, 0.1, ruv.y)
+        * smoothstep(0.0, 0.1, 1.0 - ruv.y);
+      vec3 reflection = texture2D(u_reflection, clamp(ruv, 0.002, 0.998)).rgb;
 
-      col += refl * line * 0.85 * weight * edges * fade;
+      col += reflection * line * 0.5 * weight * edges * fade;
 
       gl_FragColor = vec4(col, u_alpha * fade);
     }
@@ -326,20 +412,49 @@ import * as THREE from "./three.module.min.js";
 
     buildIndex();
 
+    let gl = null;
+    try {
+      gl = canvas.getContext("webgl2", {
+        alpha: false,
+        antialias: true,
+        depth: true,
+        stencil: false,
+        powerPreference: "high-performance"
+      });
+    } catch {
+      gl = null;
+    }
+
+    if (!gl) {
+      fail();
+      return;
+    }
+
     renderer = new THREE.WebGLRenderer({
       canvas,
+      context: gl,
       antialias: true,
       alpha: false,
       powerPreference: "high-performance"
     });
-    renderer.setClearColor(0x060907, 1);
+    renderer.setClearColor(0x000000, 1);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    try {
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+    } catch {
+      /* versões antigas usam outputEncoding */
+    }
 
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 2000);
     camera.position.set(0, 0, CAM_Z);
-
     mirrorCamera = camera.clone();
+
+    await Promise.race([
+      document.fonts.load('400 18px "Inter Tight"'),
+      new Promise((resolve) => setTimeout(resolve, 2500))
+    ]).catch(() => {});
 
     const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
@@ -348,29 +463,23 @@ import * as THREE from "./three.module.min.js";
       new Promise((resolve) => setTimeout(() => resolve(projects.map(() => null)), 8000))
     ]);
 
-    try {
-      await Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 1500))]);
-    } catch {
-      /* fonte cai no fallback do sistema */
-    }
-
-    const geometry = new THREE.PlaneGeometry(1, 1, 64, 64);
+    const geometry = new THREE.PlaneGeometry(1, 1, 96, 24);
 
     cards = projects.map((project, index) => {
       const image = images[index];
       const rawAspect = image && image.naturalWidth ? image.naturalWidth / image.naturalHeight : 1.6;
-      const aspect = Math.min(1.85, Math.max(1.15, rawAspect));
+      const aspect = Number(project.aspecto) || clamp(rawAspect, 1.15, 1.85);
 
       const mediaTexture = image
-        ? makeTexture(image, maxAniso)
+        ? makeImageTexture(image, maxAniso)
         : makePlaceholderTexture(index);
 
       const material = new THREE.ShaderMaterial({
         vertexShader: cardVertex,
         fragmentShader: cardFragment,
         transparent: true,
-        depthTest: true,
-        depthWrite: true,
+        depthTest: false,
+        depthWrite: false,
         side: THREE.DoubleSide,
         extensions: { derivatives: true },
         uniforms: {
@@ -381,11 +490,13 @@ import * as THREE from "./three.module.min.js";
           u_corner: { value: 0.05 },
           u_alpha: { value: 0 },
           u_shade: { value: 1 },
+          u_shadeS: { value: 1 },
           u_D: { value: 1 },
           u_sheetW: { value: 1 },
           u_sheetD: { value: 1 },
           u_sheetT: { value: 1.15 },
           u_sheetC: { value: 1 },
+          u_sheetP: { value: 1 },
           u_sheetV: { value: 0 },
           u_leanA: { value: 0 },
           u_leanW: { value: 1 },
@@ -409,6 +520,9 @@ import * as THREE from "./three.module.min.js";
         aspect,
         mediaAspect: rawAspect,
         mediaTexture,
+        posterTexture: image ? mediaTexture : null,
+        video: null,
+        videoTexture: null,
         mesh,
         material,
         overlayCanvas: null,
@@ -435,12 +549,11 @@ import * as THREE from "./three.module.min.js";
         u_alpha: { value: 0 },
         u_cellsX: { value: 1 },
         u_cellsY: { value: 1 },
+        u_line: { value: 0.08 },
         u_o: { value: 1 },
         u_leanA: { value: 0 },
         u_leanW: { value: 1 },
-        u_fadeStart: { value: 0.2 },
-        u_fadeEnd: { value: 0.95 },
-        u_line: { value: 0.08 },
+        u_lightX: { value: -1 },
         u_mirrorVP: { value: new THREE.Matrix4() }
       }
     });
@@ -453,7 +566,7 @@ import * as THREE from "./three.module.min.js";
     scene.add(floor);
 
     resize();
-
+    initialiseStart();
     renderer.setSize(vw, vh, false);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
@@ -471,7 +584,25 @@ import * as THREE from "./three.module.min.js";
         floor,
         floorMaterial,
         cards,
-        state: () => ({ current, target, centredIndex, vw, vh, H, W, k, isPhone, loopLength, loopLeft })
+        state: () => ({
+          current,
+          target,
+          pending,
+          centredIndex,
+          vw,
+          vh,
+          H,
+          W,
+          k,
+          isPhone,
+          loopLength,
+          loopLeft,
+          loopTop,
+          depth,
+          wrung,
+          active,
+          frames
+        })
       };
     }
 
@@ -485,6 +616,7 @@ import * as THREE from "./three.module.min.js";
         return;
       }
       const image = new Image();
+      image.crossOrigin = "anonymous";
       image.decoding = "async";
       image.onload = () => resolve(image);
       image.onerror = () => resolve(null);
@@ -492,8 +624,9 @@ import * as THREE from "./three.module.min.js";
     });
   }
 
-  function makeTexture(image, maxAniso) {
+  function makeImageTexture(image, maxAniso) {
     const texture = new THREE.Texture(image);
+    texture.colorSpace = THREE.SRGBColorSpace;
     texture.needsUpdate = true;
     texture.anisotropy = maxAniso;
     texture.minFilter = THREE.LinearMipmapLinearFilter;
@@ -512,8 +645,61 @@ import * as THREE from "./three.module.min.js";
     ctx.fillStyle = index % 2 ? "#16241b" : "#1d2f22";
     ctx.fillRect(0, 0, 8, 8);
     const texture = new THREE.CanvasTexture(c);
+    texture.colorSpace = THREE.SRGBColorSpace;
     texture.needsUpdate = true;
     return texture;
+  }
+
+  function createVideo(card) {
+    if (card.video || reduce() || !card.project.video) return;
+
+    const video = document.createElement("video");
+    video.crossOrigin = "anonymous";
+    video.muted = true;
+    video.defaultMuted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("muted", "");
+    video.preload = "auto";
+    video.src = card.project.video;
+    card.video = video;
+
+    let swapped = false;
+    const swap = () => {
+      if (swapped || !video.videoWidth || !video.videoHeight) return;
+      swapped = true;
+
+      const texture = new THREE.VideoTexture(video);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = false;
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+      card.mediaAspect = video.videoWidth / video.videoHeight;
+      card.mediaTexture = texture;
+      card.videoTexture = texture;
+      card.material.uniforms.u_media.value = texture;
+      updateCrop(card);
+
+      if (card.posterTexture && card.posterTexture !== texture) {
+        card.posterTexture.dispose();
+        card.posterTexture = null;
+      }
+    };
+
+    if (typeof video.requestVideoFrameCallback === "function") {
+      video.requestVideoFrameCallback(swap);
+    } else {
+      video.addEventListener("playing", swap, { once: true });
+    }
+  }
+
+  function pauseVideos() {
+    cards.forEach((card) => {
+      if (card.video && !card.video.paused) card.video.pause();
+    });
   }
 
   /* ------------------------------------------------------------------ */
@@ -545,10 +731,23 @@ import * as THREE from "./three.module.min.js";
   /* layout                                                              */
   /* ------------------------------------------------------------------ */
 
+  function startForMode() {
+    return isPhone ? -0.177 * vh : 100;
+  }
+
+  function initialiseStart() {
+    current = target = startForMode();
+    pending = 0;
+    initialized = true;
+  }
+
   function resize() {
     vw = stage.clientWidth;
     vh = stage.clientHeight;
-    isPhone = vw <= 649;
+    const phone = vw <= 649;
+    const modeChanged = phone !== isPhone;
+    isPhone = phone;
+
     U = vw / (isPhone ? 390 : 1500);
     H = TAN * CAM_Z;
     W = H * (vw / vh);
@@ -559,7 +758,7 @@ import * as THREE from "./three.module.min.js";
     mirrorCamera.aspect = camera.aspect;
     mirrorCamera.updateProjectionMatrix();
 
-    const gap = (isPhone ? 18 : 26) * U;
+    const gap = (isPhone ? 20 : 10) * U;
     let base = 0;
 
     if (isPhone) {
@@ -573,7 +772,7 @@ import * as THREE from "./three.module.min.js";
       loopLength = base;
       loopTop = -(loopLength - vh) / 2;
     } else {
-      const cardH = Math.min(vh * 0.46, 560 * U);
+      const cardH = Math.min(vh * 0.435, 550 * U);
       cards.forEach((card) => {
         card.cssH = cardH;
         card.cssW = cardH * card.aspect;
@@ -594,23 +793,18 @@ import * as THREE from "./three.module.min.js";
       u.u_sheetW.value = isPhone ? H : W;
       u.u_sheetT.value = isPhone ? 1 : 1.15;
       u.u_sheetC.value = isPhone ? 0 : 1;
+      u.u_sheetP.value = 1;
       u.u_leanA.value = isPhone ? 0 : W * -0.12;
       u.u_leanW.value = isPhone ? 1 : W;
       u.u_diag.value = isPhone ? 0 : 0.03;
       u.u_axis.value = isPhone ? 1 : 0;
       u.u_shade.value = isPhone ? 0 : 1;
+      u.u_shadeS.value = isPhone ? 0.6 : 1;
       u.u_aspect.value = card.cssW / card.cssH;
       u.u_corner.value = (2 * radius) / card.cssH;
       u.u_res.value.set(card.cssW * k, card.cssH * k);
 
-      const mediaAspect = card.mediaAspect;
-      const cardAspect = card.cssW / card.cssH;
-      let scaleX = 1;
-      let scaleY = 1;
-      if (cardAspect > mediaAspect) scaleY = mediaAspect / cardAspect;
-      else scaleX = cardAspect / mediaAspect;
-      u.u_crop.value.set((1 - scaleX) / 2, (1 - scaleY) / 2, scaleX, scaleY);
-
+      updateCrop(card);
       drawOverlay(card);
     });
 
@@ -626,8 +820,12 @@ import * as THREE from "./three.module.min.js";
       }
     }
 
-    if (cards.length) {
-      target = current = targetFor(centredIndex);
+    if (!initialized || modeChanged) {
+      current = target = startForMode();
+      pending = 0;
+    } else if (cards.length) {
+      const raw = targetFor(centredIndex);
+      target = raw - Math.round((raw - current) / (loopLength || 1)) * (loopLength || 1);
     }
   }
 
@@ -656,7 +854,8 @@ import * as THREE from "./three.module.min.js";
     u.u_leanW.value = W;
     u.u_cellsX.value = (W * 2 * 4) / cell;
     u.u_cellsY.value = o / cell;
-    u.u_line.value = 0.15;
+    u.u_line.value = 0.08;
+    u.u_lightX.value = W * -0.6;
     u.u_alpha.value = 0;
   }
 
@@ -667,8 +866,7 @@ import * as THREE from "./three.module.min.js";
   function drawOverlay(card) {
     const cssW = Math.max(1, card.cssW);
     const cssH = Math.max(1, card.cssH);
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const s = Math.min(1.6, dpr);
+    const s = (2 * Math.min(window.devicePixelRatio || 1, 2)) / 1.5;
     const pixelW = Math.max(2, Math.round(cssW * s));
     const pixelH = Math.max(2, Math.round(cssH * s));
 
@@ -684,13 +882,15 @@ import * as THREE from "./three.module.min.js";
     const fontSize = (isPhone ? 16 : 18) * U;
     const inset = (isPhone ? 10 : 20) * U;
 
-    ctx.font = `400 ${fontSize}px Inter, system-ui, sans-serif`;
+    ctx.font = `400 ${fontSize}px "Inter Tight", Inter, system-ui, sans-serif`;
+    ctx.letterSpacing = "-0.05em";
     ctx.fillStyle = "#fff";
     ctx.textBaseline = "alphabetic";
     ctx.shadowColor = "rgba(0,0,0,.5)";
     ctx.shadowBlur = 12 * U;
     ctx.fillText(card.project.titulo, inset, cssH - 10 * U - 0.22 * fontSize);
     ctx.shadowBlur = 0;
+    ctx.letterSpacing = "0px";
 
     const radius = 12.5 * U;
     const cx = cssW - inset - radius;
@@ -724,13 +924,24 @@ import * as THREE from "./three.module.min.js";
 
     if (card.overlayTexture) card.overlayTexture.dispose();
     const texture = new THREE.CanvasTexture(c);
-    texture.colorSpace = THREE.NoColorSpace;
+    texture.colorSpace = THREE.SRGBColorSpace;
     texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
     texture.minFilter = THREE.LinearMipmapLinearFilter;
     texture.magFilter = THREE.LinearFilter;
     texture.generateMipmaps = true;
     card.overlayTexture = texture;
     card.material.uniforms.u_overlay.value = texture;
+  }
+
+  function updateCrop(card) {
+    const u = card.material.uniforms;
+    const mediaAspect = card.mediaAspect || 1.6;
+    const cardAspect = card.cssW / card.cssH;
+    let scaleX = 1;
+    let scaleY = 1;
+    if (cardAspect > mediaAspect) scaleY = mediaAspect / cardAspect;
+    else scaleX = cardAspect / mediaAspect;
+    u.u_crop.value.set((1 - scaleX) / 2, (1 - scaleY) / 2, scaleX, scaleY);
   }
 
   /* ------------------------------------------------------------------ */
@@ -746,21 +957,37 @@ import * as THREE from "./three.module.min.js";
     lastFrame = now;
 
     if (!active || document.hidden) return;
+    frames++;
 
     const still = reduce();
     const ratio = Math.min(dt * 60, 2);
 
-    if (still) current = target;
-    else current += (target - current) * 0.1 * ratio;
-    current = Math.round(current * 100) / 100;
+    if (still) {
+      current = target;
+    } else {
+      if (Math.abs(pending) > 0.0001) {
+        const ease = pending * (1 - Math.pow(1 - 0.22, Math.min(dt * 60, 4)));
+        target += ease;
+        pending -= ease;
+        if (Math.abs(pending) < 0.05) {
+          target += pending;
+          pending = 0;
+        }
+      }
+      if (!isPhone) {
+        target = current + Math.tanh((target - current) / vw) * vw;
+      }
+      current += (target - current) * 0.1 * ratio;
+      current = Math.round(current * 100) / 100;
+    }
 
     const lag = target - current;
     const t = Math.tanh(lag / (isPhone ? 245 : 550));
     const vel = t * Math.abs(t);
     const r = still ? 0 : Math.min(1, Math.abs(vel));
 
-    const depth = isPhone ? H * 0.18 * 1.1 * r : W * 0.2 * (1 + 1.1 * r);
-    const wrung = isPhone ? 0 : r;
+    depth = isPhone ? H * 0.18 * 1.1 * r : W * 0.2 * (1 + 1.1 * r);
+    wrung = isPhone ? 0 : r;
 
     cards.forEach((card) => {
       const u = card.material.uniforms;
@@ -787,12 +1014,13 @@ import * as THREE from "./three.module.min.js";
       }
       card.screen.w = card.cssW;
       card.screen.h = card.cssH;
-
-      if (!isPhone) {
-        const away = Math.abs(card.screen.x + card.cssW / 2 - vw / 2);
-        u.u_shade.value = Math.min(1, Math.max(0, (away - vw * 0.42) / (vw * 0.55)));
-      }
+      card.mesh.visible = isPhone
+        ? card.screen.y + card.cssH > -vh && card.screen.y < vh * 2
+        : card.screen.x + card.cssW > -vw && card.screen.x < vw * 2;
     });
+
+    updateVideos();
+    updateHover();
 
     if (readyAt) {
       const elapsed = (now - readyAt) / 1000;
@@ -852,6 +1080,143 @@ import * as THREE from "./three.module.min.js";
     }
   }
 
+  function updateVideos() {
+    if (reduce() || document.hidden) {
+      pauseVideos();
+      return;
+    }
+
+    cards.forEach((card) => {
+      const near = isPhone
+        ? card.screen.y + card.cssH > -0.5 * vh && card.screen.y < 1.5 * vh
+        : card.screen.x + card.cssW > -0.5 * vw && card.screen.x < 1.5 * vw;
+
+      if (!near) {
+        if (card.video && !card.video.paused) card.video.pause();
+        return;
+      }
+
+      if (!card.video) createVideo(card);
+      const video = card.video;
+      if (video && video.paused) video.play().catch(() => {});
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* hover                                                               */
+  /* ------------------------------------------------------------------ */
+
+  function deformWorld(card, u, v, hoverValue) {
+    const sx = card.mesh.position.x;
+    const sy = card.mesh.position.y;
+    const x0 = sx + (u - 0.5) * card.cssW * k;
+    const y0 = sy + (v - 0.5) * card.cssH * k;
+
+    const qx = 2 * u - 1;
+    const qy = 2 * v - 1;
+    const dome = (1 - qx * qx) * (1 - qy * qy);
+    const dent = hoverValue * 0.035 * card.cssH * k * dome;
+    const z0 = -dent;
+
+    const swap = isPhone;
+    const along = swap ? y0 : x0;
+    const cross = swap ? x0 : y0;
+    const sheetW = swap ? H : W;
+    const sheetT = swap ? 1 : 1.15;
+    const sheetC = swap ? 0 : 1;
+    const q = (along / sheetW) * sheetT + SHIFT;
+
+    let roll = (BANK * shapeSlope(q, sheetC)) / PI * sheetC;
+    if (!swap && wrung > 0) {
+      roll += VTWIST * wrung * smoothstep(0.3, 0.9, Math.abs(along / W)) * Math.sign(along / W);
+    }
+
+    const c = Math.cos(roll);
+    const s = Math.sin(roll);
+    let curvedY = cross * c - z0 * s;
+    let curvedZ = cross * s + z0 * c;
+
+    const shape = shapeCurve(q, sheetC);
+    curvedZ += -depth * shape;
+
+    if (!swap) {
+      curvedY += 0.03 * along;
+      if (wrung > 0) {
+        const m = 1 - smoothstep(-1, 0.3, along / W);
+        curvedY += REAR_Y * W * wrung * m;
+        curvedZ += REAR_Z * W * wrung * m;
+      }
+      curvedZ += (W * -0.12) * ramp(along / W);
+    }
+
+    if (swap) return { x: curvedY, y: along, z: curvedZ };
+    return { x: along, y: curvedY, z: curvedZ };
+  }
+
+  function pickCard(clientX, clientY) {
+    if (isPhone || reduce()) return -1;
+
+    const rect = canvas.getBoundingClientRect();
+    const px = clientX - rect.left;
+    const py = clientY - rect.top;
+    if (px < 0 || py < 0 || px > vw || py > vh) return -1;
+
+    camera.updateMatrixWorld();
+    let found = -1;
+    let bestDistance = Infinity;
+    const point = new THREE.Vector3();
+
+    cards.forEach((card) => {
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+
+      for (let i = 0; i <= 4; i++) {
+        const u = i / 4;
+        for (let j = 0; j <= 1; j++) {
+          const world = deformWorld(card, u, j, card.hover);
+          point.set(world.x, world.y, world.z).project(camera);
+          const sx = (point.x * 0.5 + 0.5) * vw;
+          const sy = (-point.y * 0.5 + 0.5) * vh;
+          if (sx < minX) minX = sx;
+          if (sx > maxX) maxX = sx;
+          if (sy < minY) minY = sy;
+          if (sy > maxY) maxY = sy;
+        }
+      }
+
+      if (px >= minX && px <= maxX && py >= minY && py <= maxY) {
+        const cx = (minX + maxX) / 2;
+        const cy = (minY + maxY) / 2;
+        const d = Math.hypot(px - cx, py - cy);
+        if (d < bestDistance) {
+          bestDistance = d;
+          found = card.index;
+        }
+      }
+    });
+
+    return found;
+  }
+
+  function setHover(index) {
+    if (hovered === index) return;
+    hovered = index;
+    cards.forEach((card) => {
+      card.hoverTarget = card.index === index ? 1 : 0;
+    });
+    canvas.style.cursor = index >= 0 ? "pointer" : "";
+  }
+
+  function updateHover() {
+    if (!pointer.inside || drag || isPhone || reduce()) {
+      setHover(-1);
+      return;
+    }
+    setHover(pickCard(pointer.x, pointer.y));
+  }
+
   /* ------------------------------------------------------------------ */
   /* interação                                                           */
   /* ------------------------------------------------------------------ */
@@ -890,32 +1255,15 @@ import * as THREE from "./three.module.min.js";
     if (project && project.url) window.open(project.url, "_blank", "noopener");
   }
 
-  function hitTest(clientX, clientY) {
-    const rect = canvas.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-
-    for (const card of cards) {
-      const s = card.screen;
-      if (x >= s.x && x <= s.x + s.w && y >= s.y && y <= s.y + s.h) return card.index;
-    }
-    return -1;
-  }
-
-  function setHover(index) {
-    if (hovered === index) return;
-    hovered = index;
-    cards.forEach((card) => {
-      card.hoverTarget = card.index === index ? 1 : 0;
-    });
-    canvas.style.cursor = index >= 0 ? "pointer" : "";
+  function setPointer(event) {
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    pointer.inside = true;
   }
 
   function bindEvents() {
     canvas.addEventListener("pointermove", (event) => {
-      pointer.x = event.clientX;
-      pointer.y = event.clientY;
-      pointer.inside = true;
+      setPointer(event);
 
       if (drag) {
         const dx = event.clientX - drag.x;
@@ -926,16 +1274,16 @@ import * as THREE from "./three.module.min.js";
         }
         if (dragMoved) {
           const delta = isPhone
-            ? -(event.clientY - drag.lastY)
-            : -(event.clientX - drag.lastX);
-          push(delta * 1.6);
+            ? -(event.clientY - drag.lastY) * 3.25
+            : -(event.clientX - drag.lastX) * 1.6;
+          push(delta);
           drag.lastX = event.clientX;
           drag.lastY = event.clientY;
         }
         return;
       }
 
-      setHover(hitTest(event.clientX, event.clientY));
+      setHover(pickCard(event.clientX, event.clientY));
     });
 
     canvas.addEventListener("pointerdown", (event) => {
@@ -954,10 +1302,10 @@ import * as THREE from "./three.module.min.js";
       canvas.releasePointerCapture?.(event.pointerId);
 
       if (!moved) {
-        const index = hitTest(event.clientX, event.clientY);
+        const index = pickCard(event.clientX, event.clientY);
         if (index >= 0) openProject(index);
       } else {
-        setHover(hitTest(event.clientX, event.clientY));
+        setHover(pickCard(event.clientX, event.clientY));
       }
     };
 
@@ -974,20 +1322,37 @@ import * as THREE from "./three.module.min.js";
       if (!drag) setHover(-1);
     });
 
+    document.addEventListener("pointerleave", () => {
+      pointer.inside = false;
+      setHover(-1);
+    });
+
     canvas.addEventListener(
       "wheel",
       (event) => {
         if (event.ctrlKey) return;
-        let delta = 0;
-        if (event.shiftKey) delta = event.deltaY;
-        else if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) delta = event.deltaX;
 
-        if (!delta) return;
+        const now = performance.now();
+        const horizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+        if (!event.shiftKey && !horizontal) return;
+
+        let delta = event.shiftKey ? event.deltaY : event.deltaX;
         if (event.deltaMode === 1) delta *= 16;
         else if (event.deltaMode === 2) delta *= vh;
 
         event.preventDefault();
-        push(delta * 1.25);
+        if (!delta) return;
+
+        const big =
+          Math.abs(delta) >= 40 &&
+          now - lastWheelAt >= 30 &&
+          now - burstAt > 500;
+        const burst = now - lastWheelAt < 30;
+        if (big) pending += delta * 1.25 * 2;
+        else pending += delta * 1.25;
+
+        burstAt = burst ? now : burstAt;
+        lastWheelAt = now;
       },
       { passive: false }
     );
@@ -1054,10 +1419,14 @@ import * as THREE from "./three.module.min.js";
     reduceQuery.addEventListener?.("change", () => {
       if (reduce()) {
         target = current;
+        pending = 0;
+        pauseVideos();
         cards.forEach((card) => {
           card.hoverTarget = 0;
+          card.hover = 0;
         });
       }
+      /* ao sair de reduced motion, updateVideos cria os vídeos sob demanda */
     });
   }
 
@@ -1080,12 +1449,17 @@ import * as THREE from "./three.module.min.js";
     new IntersectionObserver(
       (entries) => {
         active = entries[0]?.isIntersecting ?? true;
+        if (!active) pauseVideos();
       },
       { threshold: 0 }
     ).observe(stage);
   }
 
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) lastFrame = 0;
+    if (document.hidden) {
+      pauseVideos();
+    } else {
+      lastFrame = 0;
+    }
   });
 })();
