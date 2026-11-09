@@ -14,6 +14,8 @@ const PROJECTS = [
     "periodo": "jan. 2026 – atual",
     "instituicao": "Anhanguera Educacional",
     "capa": "rede neural.jfif",
+    "aspecto": 1.745,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/living-portrait-hero.mp4",
     "manutencao": false
   },
   {
@@ -31,6 +33,8 @@ const PROJECTS = [
     "periodo": "jan. 2026 – set. 2026",
     "instituicao": "Anhanguera Educacional",
     "capa": "ian akiles dev.jfif",
+    "aspecto": 1.7,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/mossline-hero.mp4",
     "manutencao": true
   },
   {
@@ -47,6 +51,8 @@ const PROJECTS = [
     "periodo": "jul. 2026 – set. 2026",
     "instituicao": "Cedaspy Manaus Centro",
     "capa": "trilha aprendizado.jfif",
+    "aspecto": 1.735,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/fernhollow.mp4",
     "manutencao": false
   },
   {
@@ -63,6 +69,8 @@ const PROJECTS = [
     "periodo": "jun. 2026 – ago. 2026",
     "instituicao": "Anhanguera Educacional",
     "capa": "retro pixel.jfif",
+    "aspecto": 1.837,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/vell-lookbook.mp4",
     "manutencao": false
   },
   {
@@ -79,6 +87,8 @@ const PROJECTS = [
     "periodo": "mai. 2026 – jun. 2026",
     "instituicao": "Cedaspy Manaus Centro",
     "capa": "treino explorer.jfif",
+    "aspecto": 1.526,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/vasari-vhs-hero.mp4",
     "manutencao": false
   },
   {
@@ -95,6 +105,8 @@ const PROJECTS = [
     "periodo": "abr. 2026",
     "instituicao": "Cedaspy Manaus Centro",
     "capa": "quiz informatica.jfif",
+    "aspecto": 1.658,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/lumen-roof-hero.mp4",
     "manutencao": false
   },
   {
@@ -111,6 +123,8 @@ const PROJECTS = [
     "periodo": "jun. 2025 – out. 2025",
     "instituicao": "Anhanguera Educacional",
     "capa": "barber pro.jfif",
+    "aspecto": 1.33,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/designs/honey-bee-melli-landing.mp4",
     "manutencao": false
   },
   {
@@ -127,6 +141,8 @@ const PROJECTS = [
     "periodo": "mar. 2025 – abr. 2025",
     "instituicao": "Anhanguera Educacional",
     "capa": "sistemas particula.jfif",
+    "aspecto": 1.61,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/found-spider.mp4",
     "manutencao": false
   },
   {
@@ -144,6 +160,8 @@ const PROJECTS = [
     "periodo": "2026",
     "instituicao": "Projeto autoral",
     "capa": "buraco negro.png",
+    "aspecto": 1.745,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/living-portrait-hero.mp4",
     "manutencao": false
   },
   {
@@ -160,6 +178,8 @@ const PROJECTS = [
     "periodo": "",
     "instituicao": "Anhanguera Educacional",
     "capa": "vida singularidade.jfif",
+    "aspecto": 1.7,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/mossline-hero.mp4",
     "manutencao": false
   },
   {
@@ -175,6 +195,8 @@ const PROJECTS = [
     "periodo": "",
     "instituicao": "Projeto autoral",
     "capa": "garimpo-tech.jpg",
+    "aspecto": 1.735,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/fernhollow.mp4",
     "manutencao": false
   },
   {
@@ -190,6 +212,8 @@ const PROJECTS = [
     "periodo": "",
     "instituicao": "Projeto autoral",
     "capa": "studyflow.jpg",
+    "aspecto": 1.837,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/vell-lookbook.mp4",
     "manutencao": false
   },
   {
@@ -205,6 +229,8 @@ const PROJECTS = [
     "periodo": "",
     "instituicao": "Projeto autoral",
     "capa": "recall.jpg",
+    "aspecto": 1.526,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/vasari-vhs-hero.mp4",
     "manutencao": false
   },
   {
@@ -220,6 +246,8 @@ const PROJECTS = [
     "periodo": "",
     "instituicao": "Projeto autoral",
     "capa": "trilha-sistemas.jpg",
+    "aspecto": 1.658,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/lumen-roof-hero.mp4",
     "manutencao": false
   },
   {
@@ -235,6 +263,8 @@ const PROJECTS = [
     "periodo": "",
     "instituicao": "Projeto autoral",
     "capa": "orcamento.jpg",
+    "aspecto": 1.33,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/designs/honey-bee-melli-landing.mp4",
     "manutencao": false
   },
   {
@@ -250,6 +280,8 @@ const PROJECTS = [
     "periodo": "",
     "instituicao": "Projeto autoral",
     "capa": "retro-studio.jpg",
+    "aspecto": 1.61,
+    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/found-spider.mp4",
     "manutencao": false
   }
 ];
