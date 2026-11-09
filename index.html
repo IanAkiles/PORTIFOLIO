@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/hero.css">
+<link rel="stylesheet" href="css/footer.css">
 
 <link rel="preload" as="image" href="media/hero-plate.jpg" fetchpriority="high">
 <link rel="preload" as="font" href="fonts/grandstander-latin.woff2" type="font/woff2" crossorigin>
@@ -177,8 +178,8 @@
       </div>
       <div class="contact-art">
         <div class="contact-animation-wrap">
-          <video class="contact-animation" autoplay muted loop playsinline preload="metadata" poster="gif.gif?v=2" aria-label="Animação de agradecimento" src="contact-animation.mp4"></video>
-          <button class="video-play" type="button" aria-pressed="true">Pausar animação</button>
+          <video class="contact-animation" muted loop playsinline preload="none" poster="gif.gif?v=2" aria-label="Animação de agradecimento" src="contact-animation.mp4"></video>
+          <button class="video-play" type="button" aria-pressed="false">Reproduzir animação</button>
         </div>
         <strong>Obrigado pela visitaaa!!!</strong>
       </div>
@@ -187,10 +188,31 @@
 </section>
 </main>
 
-<footer class="site-footer" id="rodape">
-  <div class="container footer-legal">
-    <p>© 2026 Ian Akiles</p>
-    <p><button id="cookie-settings" type="button">preferências de cookies</button> · <a href="https://bug-bash.github.com/" target="_blank" rel="noopener noreferrer">Bug Bash ↗</a></p>
+<footer class="night" id="rodape" data-power="on" aria-labelledby="night-title">
+  <div class="night-scene" aria-hidden="true">
+    <img class="night-poster" src="media/footer-poster.jpg" alt="" width="1920" height="1080" decoding="async">
+    <video class="night-video" muted playsinline preload="none" poster="media/footer-poster.jpg" data-src-desktop="media/footer-1080.mp4" data-src-mobile="media/footer-720.mp4" aria-hidden="true" tabindex="-1"></video>
+    <img class="night-still" src="media/footer-night.jpg" alt="" width="1920" height="1080" decoding="async" hidden>
+    <canvas class="night-fx"></canvas>
+    <div class="night-veil"></div>
+  </div>
+  <div class="night-inner">
+    <div class="night-top">
+      <p class="night-status"><span class="night-dot" aria-hidden="true"></span><span id="night-status">sistema offline</span><span class="night-sep" aria-hidden="true">/</span><span>manaus, am</span></p>
+      <p class="night-clock"><span>horário local</span><time id="night-clock" datetime="">--:--</time></p>
+    </div>
+    <div class="night-copy">
+      <p class="night-kicker">fim da transmissão</p>
+      <h2 class="night-word" id="night-title" aria-label="obrigado">
+        <span class="sr-only">obrigado</span>
+        <button class="power" id="night-power" type="button" aria-pressed="true" aria-label="Desligar energia"><span class="sr-only">Desligar energia</span></button><span class="night-rest" aria-hidden="true">brigado</span>
+      </h2>
+      <p class="night-note">por chegar até aqui.</p>
+    </div>
+    <div class="night-bottom">
+      <p>© 2026 Ian Akiles</p>
+      <p class="night-links"><button id="cookie-settings" type="button">preferências de cookies</button><span aria-hidden="true">·</span><a href="https://bug-bash.github.com/" target="_blank" rel="noopener noreferrer">Bug Bash ↗</a><span aria-hidden="true">·</span><a href="#top">voltar ao topo ↑</a></p>
+    </div>
   </div>
 </footer>
 
@@ -219,6 +241,7 @@
 
 <script src="js/data.js"></script>
 <script src="js/hero.js"></script>
+<script src="js/footer.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

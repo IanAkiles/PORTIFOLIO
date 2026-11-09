@@ -34,14 +34,23 @@
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   if (contactVideo && videoButton) {
+    let started = false;
+
     const syncVideoButton = () => {
       const paused = contactVideo.paused;
       videoButton.textContent = paused ? "Reproduzir animação" : "Pausar animação";
       videoButton.setAttribute("aria-pressed", String(!paused));
     };
 
+    const startVideo = () => {
+      if (started) return;
+      started = true;
+      contactVideo.play().catch(() => {});
+    };
+
     videoButton.addEventListener("click", () => {
       if (contactVideo.paused) {
+        started = true;
         contactVideo.play().catch(() => {});
       } else {
         contactVideo.pause();
@@ -59,8 +68,6 @@
       contactVideo.autoplay = false;
       contactVideo.removeAttribute("autoplay");
       contactVideo.pause();
-    } else {
-      contactVideo.play().catch(() => {});
     }
 
     syncVideoButton();
@@ -69,12 +76,15 @@
       new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
-            if (!entry.isIntersecting && !contactVideo.paused) {
+            if (entry.isIntersecting) {
+              if (!started) startVideo();
+              else if (contactVideo.dataset.autoResume === "1") {
+                delete contactVideo.dataset.autoResume;
+                contactVideo.play().catch(() => {});
+              }
+            } else if (!contactVideo.paused) {
               contactVideo.dataset.autoResume = "1";
               contactVideo.pause();
-            } else if (entry.isIntersecting && contactVideo.dataset.autoResume === "1") {
-              delete contactVideo.dataset.autoResume;
-              contactVideo.play().catch(() => {});
             }
           });
         },

@@ -712,46 +712,6 @@ button {
   text-underline-offset: 3px;
 }
 
-/* --- rodapé provisório (Fase 4 substitui) --- */
-.site-footer {
-  padding: 2rem 0;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--muted);
-  font: 400 12px/1.5 var(--mono);
-}
-
-.footer-legal {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem 1.5rem;
-}
-
-.footer-legal p {
-  margin: 0;
-}
-
-.footer-legal a {
-  text-decoration: none;
-}
-
-.footer-legal a:hover {
-  color: var(--accent);
-}
-
-.footer-legal button {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-
 /* --- responsivo --- */
 @media (max-width: 1040px) {
   .project-grid {
