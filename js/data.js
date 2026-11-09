@@ -1,4 +1,4 @@
-// Fonte da verdade dos projetos. Capas e links reais preservados.
+// Fonte da verdade dos projetos. Capas ilustrativas geradas para cada projeto.
 const PROJECTS = [
   {
     "titulo": "Rede Neural Quântica",
@@ -13,9 +13,8 @@ const PROJECTS = [
     "url": "https://quanticoalfa.netlify.app/",
     "periodo": "jan. 2026 – atual",
     "instituicao": "Anhanguera Educacional",
-    "capa": "rede neural.jfif",
+    "capa": "media/cases/rede-neural-cover.jpg",
     "aspecto": 1.745,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/living-portrait-hero.mp4",
     "manutencao": false
   },
   {
@@ -32,9 +31,8 @@ const PROJECTS = [
     "url": "https://ianakiles.com.br/",
     "periodo": "jan. 2026 – set. 2026",
     "instituicao": "Anhanguera Educacional",
-    "capa": "ian akiles dev.jfif",
+    "capa": "media/cases/ian-lab-cover.jpg",
     "aspecto": 1.7,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/mossline-hero.mp4",
     "manutencao": true
   },
   {
@@ -50,9 +48,8 @@ const PROJECTS = [
     "url": "https://introducaolabti.netlify.app/",
     "periodo": "jul. 2026 – set. 2026",
     "instituicao": "Cedaspy Manaus Centro",
-    "capa": "trilha aprendizado.jfif",
+    "capa": "media/cases/sua-trilha-ti-cover.jpg",
     "aspecto": 1.735,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/fernhollow.mp4",
     "manutencao": false
   },
   {
@@ -68,9 +65,8 @@ const PROJECTS = [
     "url": "https://retrostudiobyakiles.netlify.app/",
     "periodo": "jun. 2026 – ago. 2026",
     "instituicao": "Anhanguera Educacional",
-    "capa": "retro pixel.jfif",
+    "capa": "media/cases/retro-pixel-cover.jpg",
     "aspecto": 1.837,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/vell-lookbook.mp4",
     "manutencao": false
   },
   {
@@ -86,9 +82,8 @@ const PROJECTS = [
     "url": "https://explorertreino.netlify.app/",
     "periodo": "mai. 2026 – jun. 2026",
     "instituicao": "Cedaspy Manaus Centro",
-    "capa": "treino explorer.jfif",
+    "capa": "media/cases/treino-explorer-cover.jpg",
     "aspecto": 1.526,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/vasari-vhs-hero.mp4",
     "manutencao": false
   },
   {
@@ -104,9 +99,8 @@ const PROJECTS = [
     "url": "https://quiziti.netlify.app/",
     "periodo": "abr. 2026",
     "instituicao": "Cedaspy Manaus Centro",
-    "capa": "quiz informatica.jfif",
+    "capa": "media/cases/quiz-computador-cover.jpg",
     "aspecto": 1.658,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/lumen-roof-hero.mp4",
     "manutencao": false
   },
   {
@@ -122,9 +116,8 @@ const PROJECTS = [
     "url": "https://borgesbarber.netlify.app/",
     "periodo": "jun. 2025 – out. 2025",
     "instituicao": "Anhanguera Educacional",
-    "capa": "barber pro.jfif",
+    "capa": "media/cases/barberpro-cover.jpg",
     "aspecto": 1.33,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/designs/honey-bee-melli-landing.mp4",
     "manutencao": false
   },
   {
@@ -140,9 +133,8 @@ const PROJECTS = [
     "url": "https://modeladordeparticulas.netlify.app/",
     "periodo": "mar. 2025 – abr. 2025",
     "instituicao": "Anhanguera Educacional",
-    "capa": "sistemas particula.jfif",
+    "capa": "media/cases/particulas-cover.jpg",
     "aspecto": 1.61,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/found-spider.mp4",
     "manutencao": false
   },
   {
@@ -159,9 +151,8 @@ const PROJECTS = [
     "url": "burn/index.html",
     "periodo": "2026",
     "instituicao": "Projeto autoral",
-    "capa": "buraco negro.png",
+    "capa": "media/cases/burn-cover.jpg",
     "aspecto": 1.745,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/living-portrait-hero.mp4",
     "manutencao": false
   },
   {
@@ -177,9 +168,8 @@ const PROJECTS = [
     "url": "https://vidasingularidade.netlify.app/",
     "periodo": "",
     "instituicao": "Anhanguera Educacional",
-    "capa": "vida singularidade.jfif",
+    "capa": "media/cases/singularidade-cover.jpg",
     "aspecto": 1.7,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/mossline-hero.mp4",
     "manutencao": false
   },
   {
@@ -194,9 +184,8 @@ const PROJECTS = [
     "url": "https://ianakiles.github.io/garimpo_landingpage/",
     "periodo": "",
     "instituicao": "Projeto autoral",
-    "capa": "garimpo-tech.jpg",
+    "capa": "media/cases/garimpo-tech-cover.jpg",
     "aspecto": 1.735,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/fernhollow.mp4",
     "manutencao": false
   },
   {
@@ -211,9 +200,8 @@ const PROJECTS = [
     "url": "https://ianakiles.github.io/Studyflow/?v=9b729c2",
     "periodo": "",
     "instituicao": "Projeto autoral",
-    "capa": "studyflow.jpg",
+    "capa": "media/cases/studyflow-cover.jpg",
     "aspecto": 1.837,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/vell-lookbook.mp4",
     "manutencao": false
   },
   {
@@ -228,9 +216,8 @@ const PROJECTS = [
     "url": "https://ianakiles.github.io/RECALL/",
     "periodo": "",
     "instituicao": "Projeto autoral",
-    "capa": "recall.jpg",
+    "capa": "media/cases/recall-cover.jpg",
     "aspecto": 1.526,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/vasari-vhs-hero.mp4",
     "manutencao": false
   },
   {
@@ -245,9 +232,8 @@ const PROJECTS = [
     "url": "https://ianakiles.github.io/trilha_aprendizado/",
     "periodo": "",
     "instituicao": "Projeto autoral",
-    "capa": "trilha-sistemas.jpg",
+    "capa": "media/cases/trilha-sistemas-cover.jpg",
     "aspecto": 1.658,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/lumen-roof-hero.mp4",
     "manutencao": false
   },
   {
@@ -262,9 +248,8 @@ const PROJECTS = [
     "url": "https://ianakiles.github.io/pagina_or-amento/",
     "periodo": "",
     "instituicao": "Projeto autoral",
-    "capa": "orcamento.jpg",
+    "capa": "media/cases/orcamento-cover.jpg",
     "aspecto": 1.33,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/designs/honey-bee-melli-landing.mp4",
     "manutencao": false
   },
   {
@@ -279,9 +264,8 @@ const PROJECTS = [
     "url": "https://ianakiles.github.io/retro_studio/",
     "periodo": "",
     "instituicao": "Projeto autoral",
-    "capa": "retro-studio.jpg",
+    "capa": "media/cases/retrostudio-cover.jpg",
     "aspecto": 1.61,
-    "video": "https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/found-spider.mp4",
     "manutencao": false
   }
 ];

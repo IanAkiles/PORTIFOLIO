@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -23,24 +23,19 @@
 <link rel="icon" href="gif.gif" type="image/gif">
 <link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/hero.css">
-<link rel="stylesheet" href="css/footer.css">
-<link rel="stylesheet" href="css/ribbon.css">
+<link rel="stylesheet" href="css/hero.css?v=journey-20261109">
+<link rel="stylesheet" href="css/ribbon.css?v=green-20261109">
 
-<link rel="preload" as="image" href="media/hero-plate.jpg" fetchpriority="high">
-<link rel="preload" as="font" href="fonts/grandstander-latin.woff2" type="font/woff2" crossorigin>
+<link rel="preload" as="font" href="fonts/inter-tight-latin.woff2" type="font/woff2" crossorigin>
 <link rel="preload" as="font" href="fonts/inter-latin.woff2" type="font/woff2" crossorigin>
 </head>
 <body>
 <a class="skip-link" href="#sobre">Pular para o conteúdo</a>
+<div class="journey-orbit" aria-hidden="true">
+  <img class="hero-orbit" src="media/hero-orbit.svg" alt="" width="900" height="900" decoding="async">
+</div>
 <main id="conteudo">
 <section id="top" class="hero" aria-labelledby="hero-title">
-  <div class="hero-scene" aria-hidden="true">
-    <img class="hero-plate" src="media/hero-plate.jpg" alt="" width="2160" height="1920" fetchpriority="high" decoding="async">
-    <video class="hero-loop" muted loop playsinline preload="none" data-src="media/hero-loop.mp4" aria-hidden="true" tabindex="-1"></video>
-    <div class="hero-seam"></div>
-  </div>
-  <div class="hero-veil" aria-hidden="true"></div>
   <div class="hero-inner">
     <a class="hero-logo" href="#top" aria-label="Ian Akiles — início">
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -75,15 +70,15 @@
       </div>
       <div class="featured-track">
         <a class="hero-card" href="https://quanticoalfa.netlify.app/" target="_blank" rel="noopener noreferrer" data-enter="card">
-          <img src="rede neural.jfif" alt="Capa do projeto Rede Neural Quântica" loading="eager" decoding="async">
+          <img src="media/cases/rede-neural-cover.jpg" alt="Capa do projeto Rede Neural Quântica" loading="lazy" decoding="async">
           <span class="hero-card-meta"><span class="hero-card-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="hero-card-title">Rede Neural Quântica</span></span>
         </a>
         <a class="hero-card" href="burn/index.html" data-enter="card">
-          <img src="buraco negro.png" alt="Capa do projeto Burn" loading="eager" decoding="async">
+          <img src="media/cases/burn-cover.jpg" alt="Capa do projeto Burn" loading="lazy" decoding="async">
           <span class="hero-card-meta"><span class="hero-card-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="hero-card-title">Burn</span></span>
         </a>
         <a class="hero-card" href="https://vidasingularidade.netlify.app/" target="_blank" rel="noopener noreferrer" data-enter="card">
-          <img src="vida singularidade.jfif" alt="Capa do projeto Vida de uma Singularidade" loading="eager" decoding="async">
+          <img src="media/cases/singularidade-cover.jpg" alt="Capa do projeto Vida de uma Singularidade" loading="lazy" decoding="async">
           <span class="hero-card-meta"><span class="hero-card-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="hero-card-title">Vida de uma Singularidade</span></span>
         </a>
       </div>
@@ -173,7 +168,7 @@
     <div class="contact-layout">
       <div>
         <p class="tag">contato/</p>
-        <h2 id="contato-title">Tem um projeto desafiador?</h2>
+        <h2 id="contato-title">Vamos construir seu próximo projeto.</h2>
         <p class="lead">Se você tem um projeto experimental, sistema complexo ou produto digital para tirar do papel, fale comigo pelo canal de sua preferência.</p>
         <div class="contact-methods">
           <a class="contact-card" href="https://github.com/IanAkiles" target="_blank" rel="noopener noreferrer">
@@ -203,44 +198,19 @@
           </a>
         </div>
       </div>
-      <div class="contact-art">
-        <div class="contact-animation-wrap">
-          <video class="contact-animation" muted loop playsinline preload="none" poster="gif.gif?v=2" aria-label="Animação de agradecimento" src="contact-animation.mp4"></video>
-          <button class="video-play" type="button" aria-pressed="false">Reproduzir animação</button>
-        </div>
-        <strong>Obrigado pela visitaaa!!!</strong>
-      </div>
+      <aside class="journey-note" aria-label="Próximo passo">
+        <p class="tag">o próximo passo/</p>
+        <p>Uma ideia sua.<br>Uma nova possibilidade.</p>
+        <span>Conte o que você quer construir.</span>
+      </aside>
     </div>
   </div>
 </section>
 </main>
 
-<footer class="night" id="rodape" data-power="on" aria-labelledby="night-title">
-  <div class="night-scene" aria-hidden="true">
-    <img class="night-poster" src="media/footer-poster.jpg" alt="" width="1920" height="1080" decoding="async">
-    <video class="night-video" muted playsinline preload="none" poster="media/footer-poster.jpg" data-src-desktop="media/footer-1080.mp4" data-src-mobile="media/footer-720.mp4" aria-hidden="true" tabindex="-1"></video>
-    <img class="night-still" src="media/footer-night.jpg" alt="" width="1920" height="1080" decoding="async" hidden>
-    <canvas class="night-fx"></canvas>
-    <div class="night-veil"></div>
-  </div>
-  <div class="night-inner">
-    <div class="night-top">
-      <p class="night-status"><span class="night-dot" aria-hidden="true"></span><span id="night-status">sistema offline</span><span class="night-sep" aria-hidden="true">/</span><span>manaus, am</span></p>
-      <p class="night-clock"><span>horário local</span><time id="night-clock" datetime="">--:--</time></p>
-    </div>
-    <div class="night-copy">
-      <p class="night-kicker">fim da transmissão</p>
-      <h2 class="night-word" id="night-title" aria-label="obrigado">
-        <span class="sr-only">obrigado</span>
-        <button class="power" id="night-power" type="button" aria-pressed="true" aria-label="Desligar energia"><span class="sr-only">Desligar energia</span></button><span class="night-rest" aria-hidden="true">brigado</span>
-      </h2>
-      <p class="night-note">por chegar até aqui.</p>
-    </div>
-    <div class="night-bottom">
-      <p>© 2026 Ian Akiles</p>
-      <p class="night-links"><button id="cookie-settings" type="button">preferências de cookies</button><span aria-hidden="true">·</span><a href="https://bug-bash.github.com/" target="_blank" rel="noopener noreferrer">Bug Bash ↗</a><span aria-hidden="true">·</span><a href="#top">voltar ao topo ↑</a></p>
-    </div>
-  </div>
+<footer class="journey-footer" id="rodape">
+  <p>© 2026 Ian Akiles · Manaus, Brasil</p>
+  <nav aria-label="Rodapé"><button id="cookie-settings" type="button">preferências de cookies</button><a href="https://bug-bash.github.com/" target="_blank" rel="noopener noreferrer">Bug Bash ↗</a><a href="#top">voltar ao topo ↑</a></nav>
 </footer>
 
 <aside id="cookie-notice" role="region" aria-label="Aviso de cookies" hidden>
@@ -266,10 +236,9 @@
 </dialog>
 
 
-<script src="js/data.js"></script>
-<script src="js/hero.js"></script>
-<script type="module" src="js/ribbon.js"></script>
-<script src="js/footer.js"></script>
+<script src="js/data.js?v=covers-20261109"></script>
+<script src="js/hero.js?v=journey-20261109"></script>
+<script type="module" src="js/ribbon.js?v=green-20261109"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

@@ -346,3 +346,9 @@ a.ribbon-corner:hover {
     transition: none;
   }
 }
+
+/* Reutiliza a grade acessível em telas pequenas e com movimento reduzido. */
+@media (max-width: 820px), (prefers-reduced-motion: reduce) {
+  .ribbon-section .ribbon-stage { display: none; }
+  .ribbon-section .ribbon-fallback { display: block; }
+}

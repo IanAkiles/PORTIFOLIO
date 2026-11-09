@@ -1,4 +1,4 @@
-import * as THREE from "./three.module.min.js";
+let THREE;
 
 (() => {
   "use strict";
@@ -64,7 +64,9 @@ import * as THREE from "./three.module.min.js";
   let centredIndex = 0;
   let hovered = -1;
   let readyAt = 0;
-  let active = true;
+  let active = false;
+  let rafId = 0;
+  const desktop = window.matchMedia("(min-width: 821px) and (prefers-reduced-motion: no-preference)");
   let lastFrame = 0;
   let lastPosition = "";
   let depth = 0;
@@ -401,10 +403,39 @@ import * as THREE from "./three.module.min.js";
   /* boot                                                                */
   /* ------------------------------------------------------------------ */
 
-  boot().catch((error) => {
-    console.error("[ribbon]", error);
-    fail();
-  });
+  let loading = false;
+  let nearby = !("IntersectionObserver" in window);
+  const start = () => {
+    if (loading || !nearby || !desktop.matches) return;
+    loading = true;
+    import("./three.module.min.js").then((module) => {
+      THREE = module;
+      return boot();
+    }).catch((error) => {
+      console.error("[ribbon]", error);
+      fail();
+    });
+  };
+  desktop.addEventListener("change", () => { start(); syncFrame(); });
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(([entry]) => {
+      nearby = entry.isIntersecting;
+      start();
+    }, { rootMargin: "300px" }).observe(section);
+  }
+  start();
+
+  function syncFrame() {
+    if (initialized && !disposed && active && !document.hidden && desktop.matches) {
+      if (!rafId) {
+        lastFrame = 0;
+        rafId = requestAnimationFrame(frame);
+      }
+    } else if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
+  }
 
   async function boot() {
     section.classList.add("is-loading");
@@ -458,10 +489,7 @@ import * as THREE from "./three.module.min.js";
 
     const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
-    const images = await Promise.race([
-      Promise.all(projects.map((project) => loadImage(project.capa))),
-      new Promise((resolve) => setTimeout(() => resolve(projects.map(() => null)), 8000))
-    ]);
+    const images = await Promise.all(projects.map((project) => loadImage(project.capa)));
 
     const geometry = new THREE.PlaneGeometry(1, 1, 96, 24);
 
@@ -606,7 +634,7 @@ import * as THREE from "./three.module.min.js";
       };
     }
 
-    requestAnimationFrame(frame);
+    syncFrame();
   }
 
   function loadImage(src) {
@@ -949,8 +977,9 @@ import * as THREE from "./three.module.min.js";
   /* ------------------------------------------------------------------ */
 
   function frame(now) {
-    if (disposed) return;
-    requestAnimationFrame(frame);
+    rafId = 0;
+    if (disposed || !active || document.hidden || !desktop.matches) return;
+    rafId = requestAnimationFrame(frame);
 
     if (!lastFrame) lastFrame = now;
     const dt = Math.min((now - lastFrame) / 1000, 0.05);
@@ -1450,6 +1479,7 @@ import * as THREE from "./three.module.min.js";
       (entries) => {
         active = entries[0]?.isIntersecting ?? true;
         if (!active) pauseVideos();
+        syncFrame();
       },
       { threshold: 0 }
     ).observe(stage);
@@ -1461,5 +1491,6 @@ import * as THREE from "./three.module.min.js";
     } else {
       lastFrame = 0;
     }
+    syncFrame();
   });
 })();

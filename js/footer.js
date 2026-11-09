@@ -184,7 +184,7 @@
   };
 
   const startFx = () => {
-    if (!ctx || !width || !height) return;
+    if (!ctx || !width || !height || !inView || !powered || document.hidden) return;
     if (reduceMotion.matches) {
       draw(performance.now());
       return;
@@ -227,6 +227,27 @@
     }
   }
 
+  const syncScene = () => {
+    if (!inView || !powered || document.hidden) {
+      video?.pause();
+      stopFx();
+      return;
+    }
+    if (reduceMotion.matches) {
+      video?.pause();
+      showStill();
+      stopFx();
+    } else if (!videoStarted) {
+      playVideoOnce();
+    } else if (video && video.paused && !video.ended && !video.error) {
+      video.play().catch(showStill);
+    }
+    startFx();
+  };
+
+  document.addEventListener("visibilitychange", syncScene);
+  reduceMotion.addEventListener("change", syncScene);
+
   /* --- ligar/desligar --- */
   const setPower = (next) => {
     powered = next;
@@ -239,8 +260,7 @@
 
     if (status) status.textContent = next ? "sistema offline" : "tela desligada";
 
-    if (next) startFx();
-    else stopFx();
+    syncScene();
   };
 
   power?.addEventListener("click", () => setPower(!powered));
@@ -252,19 +272,13 @@
         entries.forEach((entry) => {
           inView = entry.isIntersecting;
 
-          if (inView) {
-            playVideoOnce();
-            startFx();
-          } else {
-            stopFx();
-          }
+          syncScene();
         });
       },
       { threshold: 0.35 }
     ).observe(footer);
   } else {
     inView = true;
-    playVideoOnce();
-    startFx();
+    syncScene();
   }
 })();

@@ -1,91 +1,47 @@
 (() => {
-  const hero = document.querySelector(".hero");
-  if (!hero) return;
+  const orbit = document.querySelector(".hero-orbit");
+  const main = document.querySelector("main");
+  const contact = document.getElementById("contato");
+  if (!orbit || !main || !contact) return;
 
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const u = Math.max(1, window.innerWidth / 1440);
-  const spring = "cubic-bezier(.34,1.56,.64,1)";
-  const ease = "cubic-bezier(.2,.8,.2,1)";
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const mobile = window.matchMedia("(max-width: 820px)");
+  let frame = 0;
+  let finish = 1;
 
-  if (!reduceMotion) {
-    const top = [".hero-logo", ".hero-nav", ".hero-cta"];
-    top.forEach((selector, index) => {
-      const el = hero.querySelector(selector);
-      if (!el) return;
-      const animation = el.animate(
-        [
-          { opacity: 0, transform: `translateY(${-16 * u}px)` },
-          { opacity: 1, transform: "translateY(0)" }
-        ],
-        { duration: 720, delay: index * 60, easing: ease, fill: "both" }
-      );
-      animation.finished.then(() => animation.cancel()).catch(() => {});
-    });
-
-    const kicker = hero.querySelector('[data-enter="kicker"]');
-    if (kicker) {
-      const animation = kicker.animate(
-        [
-          { opacity: 0, filter: "blur(12px)", transform: `translateY(${14 * u}px)` },
-          { opacity: 1, filter: "blur(0)", transform: "translateY(0)" }
-        ],
-        { duration: 820, delay: 220, easing: ease, fill: "both" }
-      );
-      animation.finished.then(() => animation.cancel()).catch(() => {});
-    }
-
-    hero.querySelectorAll('[data-enter="title"]').forEach((el, index) => {
-      const animation = el.animate(
-        [
-          { opacity: 0, filter: "blur(16px)", transform: `translateY(${46 * u}px)` },
-          { opacity: 1, filter: "blur(0)", transform: "translateY(0)" }
-        ],
-        { duration: 900, delay: 360 + index * 160, easing: spring, fill: "both" }
-      );
-      animation.finished.then(() => animation.cancel()).catch(() => {});
-    });
-
-    hero.querySelectorAll('[data-enter="copy"]').forEach((el, index) => {
-      const animation = el.animate(
-        [
-          { opacity: 0, transform: `translateY(${26 * u}px)` },
-          { opacity: 1, transform: "translateY(0)" }
-        ],
-        { duration: 760, delay: 720 + index * 70, easing: ease, fill: "both" }
-      );
-      animation.finished.then(() => animation.cancel()).catch(() => {});
-    });
-
-    const featured = hero.querySelector('[data-enter="featured"]');
-    if (featured) {
-      const animation = featured.animate(
-        [
-          { opacity: 0, transform: `translateY(${24 * u}px)` },
-          { opacity: 1, transform: "translateY(0)" }
-        ],
-        { duration: 760, delay: 940, easing: ease, fill: "both" }
-      );
-      animation.finished.then(() => animation.cancel()).catch(() => {});
-    }
-
-    hero.querySelectorAll('[data-enter="card"]').forEach((el, index) => {
-      const animation = el.animate(
-        [
-          { opacity: 0, transform: `translateY(${30 * u}px)` },
-          { opacity: 1, transform: "translateY(0)" }
-        ],
-        { duration: 780, delay: 1000 + index * 90, easing: ease, fill: "both" }
-      );
-      animation.finished.then(() => animation.cancel()).catch(() => {});
-    });
+  function draw() {
+    frame = 0;
+    const progress = reduced.matches ? 0 : Math.max(0, Math.min(1, window.scrollY / finish));
+    // A expansão acontece antes do contato e para, sem criar uma camada ilimitada.
+    const travel = 1 - Math.pow(1 - progress, 3);
+    const scale = mobile.matches ? 1 + travel * .7 : 1 + travel * 1.8;
+    const x = (mobile.matches ? 38 : 28) * (1 - travel);
+    const rotation = reduced.matches ? 0 : travel * 65;
+    orbit.style.transform = `translate(-50%, -50%) translateX(${x}vw) scale(${scale}) rotate(${rotation}deg)`;
+    orbit.style.opacity = String((mobile.matches ? .32 : .55) - travel * (mobile.matches ? .18 : .35));
   }
 
-  const video = hero.querySelector(".hero-loop");
-  if (!video || reduceMotion) return;
+  function schedule() {
+    if (!document.hidden && !frame) frame = requestAnimationFrame(draw);
+  }
 
-  video.addEventListener("playing", () => video.classList.add("is-playing"), { once: true });
-  video.src = video.dataset.src;
-  video.play().catch(() => {
-    // Autoplay bloqueado: a placa estática permanece visível.
+  function measure() {
+    finish = Math.max(1, contact.getBoundingClientRect().top + window.scrollY - window.innerHeight * .2);
+    schedule();
+  }
+
+  window.addEventListener("scroll", () => {
+    if (!reduced.matches) schedule();
+  }, { passive: true });
+  window.addEventListener("resize", measure);
+  reduced.addEventListener("change", schedule);
+  mobile.addEventListener("change", measure);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    } else measure();
   });
+  if ("ResizeObserver" in window) new ResizeObserver(measure).observe(main);
+  measure();
 })();
