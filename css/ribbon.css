@@ -352,3 +352,54 @@ a.ribbon-corner:hover {
   .ribbon-section .ribbon-stage { display: none; }
   .ribbon-section .ribbon-fallback { display: block; }
 }
+
+/* --- projetos (mobile): faixa horizontal com auto-scroll e arraste --- */
+@media (max-width: 820px) {
+  .ribbon-section,
+  .ribbon-section .ribbon-fallback { background: transparent; }
+
+  /* Base sem JS / movimento reduzido: rolagem horizontal nativa com snap. */
+  .ribbon-fallback .project-grid {
+    display: flex;
+    gap: 12px;
+    width: auto;
+    margin-inline: calc(var(--pad) * -1);
+    padding: 12px var(--pad) 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--pad);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ribbon-fallback .project-grid::-webkit-scrollbar { display: none; }
+  .ribbon-fallback .project-card {
+    flex: 0 0 78vw;
+    width: 78vw;
+    scroll-snap-align: center;
+  }
+
+  /* Modo faixa contínua (ativado por js/main.js). */
+  .project-marquee {
+    overflow: hidden;
+    margin-inline: calc(var(--pad) * -1);
+    padding-block: 12px 20px;
+  }
+  .project-marquee .project-grid {
+    width: max-content;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    scroll-snap-type: none;
+    gap: 12px;
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    will-change: transform;
+  }
+  .project-marquee.is-dragging .project-grid { cursor: grabbing; }
+  .project-marquee .project-card { scroll-snap-align: none; -webkit-user-drag: none; }
+  .project-marquee .project-card img { pointer-events: none; }
+  .project-marquee .project-card:hover,
+  .project-marquee .project-card:focus-visible { transform: none; }
+}
