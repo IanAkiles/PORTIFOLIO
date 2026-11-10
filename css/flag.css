@@ -1,0 +1,38 @@
+.photo-flag {
+  position: relative;
+  height: clamp(500px, 94svh, 960px);
+  overflow: hidden;
+  background: transparent;
+  isolation: isolate;
+}
+.photo-flag-still {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: auto;
+  height: 84%;
+  max-width: 84%;
+  object-fit: contain;
+  transform: translate(-50%, -50%) rotate(5deg);
+}
+.photo-flag-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+.photo-flag.is-ready .photo-flag-canvas { visibility: visible; }
+.photo-flag.is-ready .photo-flag-still { opacity: 0; }
+.photo-flag-canvas.is-over { cursor: grab; }
+.photo-flag-canvas.is-held { cursor: grabbing; }
+@media (max-width: 600px) {
+  .photo-flag { height: clamp(480px, 145vw, 720px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .photo-flag.is-ready .photo-flag-canvas { visibility: hidden; }
+  .photo-flag.is-ready .photo-flag-still { opacity: 1; }
+}
