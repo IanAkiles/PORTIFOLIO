@@ -25,6 +25,13 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/hero.css?v=journey-20261109">
 <link rel="stylesheet" href="css/ribbon.css?v=ring-20261109">
+<link rel="stylesheet" href="css/mascot.css?v=mascot-20261109">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
 
 <link rel="preload" as="font" href="fonts/inter-tight-latin.woff2" type="font/woff2" crossorigin>
 <link rel="preload" as="font" href="fonts/inter-latin.woff2" type="font/woff2" crossorigin>
@@ -206,6 +213,22 @@
     </div>
   </div>
 </section>
+
+<section id="mascote" class="section mascot" aria-labelledby="mascote-title">
+  <canvas class="mascot-canvas" id="mascot-stage" aria-hidden="true"></canvas>
+  <div class="mascot-loader" id="mascot-loader" aria-hidden="true"></div>
+  <div class="mascot-inner">
+    <div class="mascot-copy">
+      <p class="tag reveal d1">fim de página/</p>
+      <h2 id="mascote-title" class="reveal d2">Ele está de olho no seu cursor.</h2>
+      <p class="lead reveal d3">Mexa o mouse (ou o dedo) e a cabeça acompanha, os olhos seguem e os braços continuam flutuando. Um detalhe a mais para quem chegou até aqui, feito com Three.js.</p>
+      <div class="mascot-actions reveal d4">
+        <a class="btn-accent" href="mailto:akilesian424@gmail.com">Vamos conversar</a>
+        <a class="mascot-link" href="#projetos">rever projetos ↑</a>
+      </div>
+    </div>
+  </div>
+</section>
 </main>
 
 <footer class="journey-footer" id="rodape">
@@ -240,5 +263,6 @@
 <script src="js/hero.js?v=journey-20261109"></script>
 <script type="module" src="js/ribbon.js?v=ring-20261109"></script>
 <script src="js/main.js"></script>
+<script src="js/mascot-boot.js?v=mascot-20261109"></script>
 </body>
 </html>
