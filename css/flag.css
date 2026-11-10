@@ -1,20 +1,29 @@
 .photo-flag {
   position: relative;
-  height: clamp(500px, 94svh, 960px);
+  height: clamp(600px, 94svh, 960px);
   overflow: hidden;
   background: transparent;
   isolation: isolate;
 }
 .photo-flag-still {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: auto;
-  height: 84%;
-  max-width: 84%;
+  left: var(--x, 50%);
+  top: var(--y, 50%);
   object-fit: contain;
-  transform: translate(-50%, -50%) rotate(5deg);
+  transform: translate(-50%, -50%) rotate(var(--tilt, 5deg));
+  user-select: none;
+  pointer-events: none;
 }
+.photo-flag-portrait { height: 78%; width: auto; max-width: 42%; }
+.photo-flag-logo { height: auto; width: var(--size); }
+.flag-html { --x: 14%; --y: 20%; --size: clamp(72px, 8.5vw, 122px); --tilt: -9deg; }
+.flag-css { --x: 20%; --y: 43%; --size: clamp(72px, 8vw, 116px); --tilt: 9deg; }
+.flag-react { --x: 11%; --y: 63%; --size: clamp(92px, 12vw, 173px); --tilt: -12deg; }
+.flag-vscode { --x: 20%; --y: 84%; --size: clamp(78px, 9.5vw, 137px); --tilt: 8deg; }
+.flag-python { --x: 84%; --y: 19%; --size: clamp(82px, 10.5vw, 151px); --tilt: 10deg; }
+.flag-linux { --x: 80%; --y: 43%; --size: clamp(76px, 9vw, 130px); --tilt: -7deg; }
+.flag-chatgpt { --x: 89%; --y: 65%; --size: clamp(78px, 9.5vw, 137px); --tilt: 9deg; }
+.flag-claude { --x: 82%; --y: 84%; --size: clamp(110px, 15vw, 216px); --tilt: -8deg; }
 .photo-flag-canvas {
   position: absolute;
   inset: 0;
@@ -26,13 +35,22 @@
   -webkit-tap-highlight-color: transparent;
 }
 .photo-flag.is-ready .photo-flag-canvas { visibility: visible; }
-.photo-flag.is-ready .photo-flag-still { opacity: 0; }
+.photo-flag.is-ready .photo-flag-still.is-rendered { opacity: 0; }
 .photo-flag-canvas.is-over { cursor: grab; }
 .photo-flag-canvas.is-held { cursor: grabbing; }
 @media (max-width: 600px) {
-  .photo-flag { height: clamp(480px, 145vw, 720px); }
+  .photo-flag { height: clamp(560px, 155vw, 720px); }
+  .photo-flag-portrait { height: auto; width: 54%; max-width: none; }
+  .flag-html { --x: 14%; --y: 17%; --size: 14vw; }
+  .flag-css { --x: 10%; --y: 39%; --size: 12vw; }
+  .flag-react { --x: 10%; --y: 63%; --size: 14.5vw; }
+  .flag-vscode { --x: 20%; --y: 83%; --size: 16vw; }
+  .flag-python { --x: 84%; --y: 16%; --size: 17vw; }
+  .flag-linux { --x: 90%; --y: 38%; --size: 14vw; }
+  .flag-chatgpt { --x: 90%; --y: 63%; --size: 14vw; }
+  .flag-claude { --x: 78%; --y: 84%; --size: 27vw; }
 }
 @media (prefers-reduced-motion: reduce) {
   .photo-flag.is-ready .photo-flag-canvas { visibility: hidden; }
-  .photo-flag.is-ready .photo-flag-still { opacity: 1; }
+  .photo-flag.is-ready .photo-flag-still.is-rendered { opacity: 1; }
 }

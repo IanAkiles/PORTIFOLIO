@@ -7,10 +7,10 @@ async function start() {
   started = true;
   try {
     const THREE = await import('./three.module.min.js');
-    await createFlag(THREE);
+    await createFlags(THREE);
   } catch (error) {
     section.classList.remove('is-ready');
-    console.warn('Bandeira: exibindo a fotografia estática.', error);
+    console.warn('Bandeiras: exibindo as imagens estáticas.', error);
   }
 }
 
@@ -24,11 +24,10 @@ if (section) {
   reduced.addEventListener('change', () => { if (!reduced.matches) start(); });
 }
 
-async function createFlag(T) {
+async function createFlags(T) {
   const canvas = section.querySelector('canvas');
   const renderer = new T.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setClearColor(0x000000, 0);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
   const scene = new T.Scene();
   const camera = new T.PerspectiveCamera(35, 1, .1, 20);
   camera.position.set(0, 0, 4.4);
@@ -36,66 +35,64 @@ async function createFlag(T) {
   const light = new T.DirectionalLight(0xffffff, 1.7);
   light.position.set(-3, 4, 5);
   scene.add(light);
-  let texture;
-  try {
-    texture = await new T.TextureLoader().loadAsync(new URL('../media/flag-photo.webp', import.meta.url).href);
-  } catch (error) {
-    renderer.dispose();
-    throw error;
-  }
-  texture.colorSpace = T.SRGBColorSpace;
-  texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-  const cols = 24, rows = 32, width = 2 * 891 / 1170, height = 2;
-  const geometry = new T.PlaneGeometry(width, height, cols, rows);
-  const attribute = geometry.attributes.position;
-  attribute.setUsage(T.DynamicDrawUsage);
-  const positions = attribute.array;
-  const rest = positions.slice();
-  // Slight roll and permanent folds keep the resting portrait from looking like a rigid card.
-  for (let i = 0; i < attribute.count; i++) {
-    const k = i * 3, x = rest[k], y = rest[k + 1];
-    positions[k] = x * Math.cos(-.07) - y * Math.sin(-.07);
-    positions[k + 1] = x * Math.sin(-.07) + y * Math.cos(-.07);
-    positions[k + 2] = .028 * Math.sin(x * 12 + y * 5);
-  }
-  const previous = positions.slice();
-  const pins = positions.slice();
-  const fixed = i => i === 0 || i === cols;
-  const links = [];
-  function link(a, b, strength) {
-    const length = Math.hypot(rest[a * 3] - rest[b * 3], rest[a * 3 + 1] - rest[b * 3 + 1]);
-    links.push([a, b, length, strength]);
-  }
-  for (let y = 0; y <= rows; y++) for (let x = 0; x <= cols; x++) {
-    const i = y * (cols + 1) + x;
-    if (x < cols) link(i, i + 1, 1);
-    if (y < rows) link(i, i + cols + 1, 1);
-    if (x < cols && y < rows) {
-      link(i, i + cols + 2, .65);
-      link(i + 1, i + cols + 1, .65);
-    }
-    if (x + 2 <= cols) link(i, i + 2, .3);
-    if (y + 2 <= rows) link(i, i + 2 * (cols + 1), .3);
-  }
-  const material = new T.MeshStandardMaterial({ map: texture, side: T.DoubleSide, roughness: .86, metalness: 0 });
-  const mesh = new T.Mesh(geometry, material);
-  mesh.frustumCulled = false;
-  scene.add(mesh);
+  const flags = [];
+  let active = null, pointerId = null, visible = false, failed = false, frame = 0, last = 0, sizing;
   const raycaster = new T.Raycaster();
   const pointer = new T.Vector2();
   const plane = new T.Plane(new T.Vector3(0, 0, 1), 0);
-  const target = new T.Vector3();
+  const point = new T.Vector3();
   const offset = new T.Vector3();
-  const dragStart = new T.Vector3();
-  const stretchWeights = new Float32Array(attribute.count);
-  let stretch = 0;
-  let held = -1, pointerId = null, visible = false, failed = false, frame = 0, last = 0, time = 0;
-  renderer.debug.onShaderError = () => {
+
+  function release() {
+    active?.release();
+    active = null;
+    const id = pointerId;
+    pointerId = null;
+    canvas.classList.remove('is-held', 'is-over');
+    if (id !== null && canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+  }
+  function sync() {
+    cancelAnimationFrame(frame);
+    frame = 0;
+    last = 0;
+    release();
+    if (visible && !document.hidden && !reduced.matches && !failed) frame = requestAnimationFrame(tick);
+  }
+  function fail() {
     failed = true;
     sync();
     section.classList.remove('is-ready');
-  };
-
+  }
+  renderer.debug.onShaderError = fail;
+  canvas.addEventListener('webglcontextlost', event => {
+    event.preventDefault();
+    fail();
+    sizing?.disconnect();
+    for (const flag of flags) {
+      flag.mesh.geometry.dispose();
+      flag.mesh.material.map.dispose();
+      flag.mesh.material.dispose();
+    }
+    renderer.dispose();
+  });
+  // A missing logo leaves only its own static fallback; the other flags still work.
+  await Promise.all([...section.querySelectorAll('.photo-flag-still')].map(async image => {
+    let texture;
+    try {
+      texture = await new T.TextureLoader().loadAsync(image.src);
+      if (failed) { texture.dispose(); return; }
+      texture.colorSpace = T.SRGBColorSpace;
+      texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+      const flag = createCloth(T, image, texture);
+      flags.push(flag);
+      scene.add(flag.mesh);
+    } catch (error) {
+      texture?.dispose();
+      console.warn('Bandeira indisponível:', image.alt, error);
+    }
+  }));
+  if (failed || !flags.length) { renderer.dispose(); return; }
+  const meshes = flags.map(flag => flag.mesh);
   function updateRay(event) {
     const rect = canvas.getBoundingClientRect();
     pointer.set(2 * (event.clientX - rect.left) / rect.width - 1, 1 - 2 * (event.clientY - rect.top) / rect.height);
@@ -103,47 +100,30 @@ async function createFlag(T) {
   }
   function pick(event) {
     updateRay(event);
-    geometry.computeBoundingSphere();
-    return raycaster.intersectObject(mesh)[0];
-  }
-  function release() {
-    const id = pointerId;
-    held = -1;
-    pointerId = null;
-    canvas.classList.remove('is-held', 'is-over');
-    if (id !== null && canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+    for (const flag of flags) flag.mesh.geometry.computeBoundingSphere();
+    return raycaster.intersectObjects(meshes, false).find(hit => hit.object.userData.cloth.opaque(hit.uv));
   }
   canvas.addEventListener('pointerdown', event => {
-    if (reduced.matches || (event.pointerType === 'mouse' && event.button !== 0) || held >= 0) return;
+    if (failed || reduced.matches || (event.pointerType === 'mouse' && event.button !== 0) || active) return;
     const hit = pick(event);
     if (!hit) return;
-    let distance = Infinity;
-    for (let i = 0; i < attribute.count; i++) {
-      if (fixed(i)) continue;
-      const k = i * 3;
-      const d = (positions[k] - hit.point.x) ** 2 + (positions[k + 1] - hit.point.y) ** 2 + (positions[k + 2] - hit.point.z) ** 2;
-      if (d < distance) { held = i; distance = d; }
-    }
+    active = hit.object.userData.cloth;
     plane.constant = -hit.point.z;
-    offset.set(positions[held * 3], positions[held * 3 + 1], positions[held * 3 + 2]).sub(hit.point);
-    target.copy(hit.point).add(offset);
-    dragStart.copy(target);
-    for (let i = 0; i < attribute.count; i++) {
-      const distance = Math.hypot(rest[i * 3] - rest[held * 3], rest[i * 3 + 1] - rest[held * 3 + 1]);
-      stretchWeights[i] = Math.exp(-distance / .85);
-    }
+    point.copy(hit.point);
+    active.mesh.worldToLocal(point);
+    offset.copy(active.grab(point)).sub(point);
     pointerId = event.pointerId;
     canvas.setPointerCapture(pointerId);
     canvas.classList.add('is-held');
   });
   canvas.addEventListener('pointermove', event => {
-    if (held >= 0) {
+    if (failed || reduced.matches) return;
+    if (active) {
       if (event.pointerId !== pointerId) return;
       updateRay(event);
-      if (raycaster.ray.intersectPlane(plane, target)) {
-        target.add(offset);
-        target.x = T.MathUtils.clamp(target.x, -2, 2);
-        target.y = T.MathUtils.clamp(target.y, -1.9, 1.6);
+      if (raycaster.ray.intersectPlane(plane, point)) {
+        active.mesh.worldToLocal(point);
+        active.move(point.add(offset));
       }
     } else if (event.pointerType === 'mouse') canvas.classList.toggle('is-over', Boolean(pick(event)));
   });
@@ -151,12 +131,148 @@ async function createFlag(T) {
     if (e.pointerId === pointerId) release();
   });
   canvas.addEventListener('pointerleave', () => canvas.classList.remove('is-over'));
-  // Cancel touch scrolling only for a gesture that starts on the actual cloth.
   canvas.addEventListener('touchstart', event => {
-    if (event.touches.length === 1 && pick(event.touches[0])) event.preventDefault();
+    if (!failed && !reduced.matches && event.touches.length === 1 && pick(event.touches[0])) event.preventDefault();
   }, { passive: false });
-  canvas.addEventListener('touchmove', event => { if (held >= 0) event.preventDefault(); }, { passive: false });
+  canvas.addEventListener('touchmove', event => { if (active) event.preventDefault(); }, { passive: false });
   window.addEventListener('blur', release);
+
+  function render() {
+    for (const flag of flags) {
+      flag.mesh.geometry.attributes.position.needsUpdate = true;
+      flag.mesh.geometry.computeVertexNormals();
+    }
+    renderer.render(scene, camera);
+  }
+  function resize() {
+    const { width: w, height: h } = section.getBoundingClientRect();
+    if (!w || !h || failed) return;
+    release();
+    renderer.setPixelRatio(Math.min(devicePixelRatio, w <= 600 ? 1.25 : 1.5));
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    const unit = 2 * camera.position.z * Math.tan(T.MathUtils.degToRad(camera.fov / 2)) / h;
+    for (const flag of flags) {
+      const image = flag.image;
+      const style = getComputedStyle(image);
+      const x = parseFloat(style.left), y = parseFloat(style.top);
+      flag.mesh.position.set((x - w / 2) * unit, (h / 2 - y) * unit, 0);
+      flag.mesh.rotation.z = -T.MathUtils.degToRad(parseFloat(style.getPropertyValue('--tilt')) || 5);
+      flag.mesh.scale.setScalar(Math.min(image.clientWidth / flag.width, image.clientHeight / flag.height) * unit);
+      flag.mesh.updateMatrixWorld();
+    }
+    if (visible && !reduced.matches) render();
+  }
+  function tick(now) {
+    frame = 0;
+    if (!visible || document.hidden || reduced.matches || failed) return;
+    const dt = last ? Math.min((now - last) / 1000, 1 / 30) : 1 / 60;
+    for (const flag of flags) flag.simulate(dt);
+    last = now;
+    render();
+    frame = requestAnimationFrame(tick);
+  }
+  sizing = new ResizeObserver(resize);
+  sizing.observe(section);
+  // Image decoding may change an auto-sized fallback after the section has settled.
+  for (const flag of flags) flag.image.addEventListener('load', resize, { once: true });
+  if ('IntersectionObserver' in window) new IntersectionObserver(entries => {
+    visible = entries[0].isIntersecting;
+    sync();
+  }).observe(section);
+  else visible = true;
+  document.addEventListener('visibilitychange', sync);
+  reduced.addEventListener('change', sync);
+  for (let i = 0; i < 90; i++) for (const flag of flags) flag.simulate(1 / 60, false);
+  resize();
+  render();
+  if (!failed) {
+    for (const flag of flags) flag.image.classList.add('is-rendered');
+    section.classList.add('is-ready');
+  }
+  sync();
+}
+
+function createCloth(T, image, texture) {
+  const portrait = image.classList.contains('photo-flag-portrait');
+  const aspect = texture.image.width / texture.image.height;
+  const width = 2 * aspect, height = 2;
+  const cols = portrait ? 24 : 8, rows = portrait ? 32 : 8;
+  const geometry = new T.PlaneGeometry(width, height, cols, rows);
+  const attribute = geometry.attributes.position;
+  attribute.setUsage(T.DynamicDrawUsage);
+  const positions = attribute.array;
+  const rest = positions.slice();
+  for (let i = 0; i < attribute.count; i++) {
+    const k = i * 3;
+    positions[k + 2] = .022 * Math.sin(rest[k] * 12 + rest[k + 1] * 5);
+  }
+  const previous = positions.slice(), pins = positions.slice();
+  const fixed = i => i === 0 || i === cols;
+  const links = [];
+  const tethers = new Float32Array(attribute.count * 2);
+  for (let i = 0; i < attribute.count; i++) for (let pin = 0; pin < 2; pin++) {
+    tethers[i * 2 + pin] = Math.hypot(rest[i * 3] - rest[pin * cols * 3], rest[i * 3 + 1] - rest[pin * cols * 3 + 1]);
+  }
+  function link(a, b, strength) {
+    links.push([a, b, Math.hypot(rest[a * 3] - rest[b * 3], rest[a * 3 + 1] - rest[b * 3 + 1]), strength]);
+  }
+  for (let y = 0; y <= rows; y++) for (let x = 0; x <= cols; x++) {
+    const i = y * (cols + 1) + x;
+    if (x < cols) link(i, i + 1, 1);
+    if (y < rows) link(i, i + cols + 1, 1);
+    if (x < cols && y < rows) { link(i, i + cols + 2, .65); link(i + 1, i + cols + 1, .65); }
+    if (x + 2 <= cols) link(i, i + 2, .3);
+    if (y + 2 <= rows) link(i, i + 2 * (cols + 1), .3);
+  }
+  const material = new T.MeshStandardMaterial({
+    map: texture, side: T.DoubleSide, roughness: .86, metalness: 0,
+    transparent: !portrait, alphaTest: portrait ? 0 : .3, depthWrite: portrait, forceSinglePass: true
+  });
+  const mesh = new T.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  let alpha;
+  if (!portrait) {
+    const mask = document.createElement('canvas');
+    mask.width = mask.height = 128;
+    const context = mask.getContext('2d', { willReadFrequently: true });
+    context.drawImage(texture.image, 0, 0, 128, 128);
+    alpha = context.getImageData(0, 0, 128, 128).data;
+  }
+  const target = new T.Vector3(), dragStart = new T.Vector3();
+  const stretchWeights = new Float32Array(attribute.count), pullWeights = new Float32Array(attribute.count);
+  let held = -1, stretch = 0, time = 0;
+  const cloth = {
+    image, mesh, width, height, simulate,
+    opaque(uv) {
+      if (!alpha) return true;
+      const x = Math.min(127, Math.max(0, Math.floor(uv.x * 128)));
+      const y = Math.min(127, Math.max(0, Math.floor((1 - uv.y) * 128)));
+      return alpha[(y * 128 + x) * 4 + 3] > 76;
+    },
+    grab(point) {
+      let distance = Infinity;
+      for (let i = 0; i < attribute.count; i++) {
+        if (fixed(i)) continue;
+        const k = i * 3;
+        const d = (positions[k] - point.x) ** 2 + (positions[k + 1] - point.y) ** 2 + (positions[k + 2] - point.z) ** 2;
+        if (d < distance) { held = i; distance = d; }
+      }
+      target.fromArray(positions, held * 3);
+      dragStart.copy(target);
+      for (let i = 0; i < attribute.count; i++) {
+        const d = Math.hypot(rest[i * 3] - rest[held * 3], rest[i * 3 + 1] - rest[held * 3 + 1]);
+        stretchWeights[i] = Math.exp(-d / .85);
+        pullWeights[i] = d < .26 ? (1 - (d / .26) ** 2) ** 2 : 0;
+      }
+      return target;
+    },
+    move(point) { target.copy(point); target.x = T.MathUtils.clamp(target.x, -Math.max(width, 2), Math.max(width, 2)); target.y = T.MathUtils.clamp(target.y, -1.9, 1.6); },
+    release() { held = -1; }
+  };
+  mesh.userData.cloth = cloth;
+  return cloth;
 
   function simulate(dt, wind = true) {
     const desiredStretch = held >= 0 ? Math.min(.6, target.distanceTo(dragStart) * .6) : 0;
@@ -168,7 +284,7 @@ async function createFlag(T) {
       for (let i = 0; i < attribute.count; i++) {
         if (fixed(i)) continue;
         const k = i * 3;
-        const flutter = wind ? .9 * Math.sin(rest[k] * 6 + rest[k + 1] * 4 + time * 2.2) : 0;
+        const flutter = wind ? (portrait ? .9 : .65) * Math.sin(rest[k] * 6 + rest[k + 1] * 4 + time * 2.2) : 0;
         for (let axis = 0; axis < 3; axis++) {
           const value = positions[k + axis];
           const acceleration = axis === 1 ? -3.2 : axis === 2 ? flutter + (wind ? .4 : 0) : flutter * .13;
@@ -178,19 +294,17 @@ async function createFlag(T) {
       }
       if (held >= 0) {
         const k = held * 3;
-        for (const pin of [0, cols]) {
-          const p = pin * 3;
-          const max = 1.5 * Math.hypot(rest[k] - rest[p], rest[k + 1] - rest[p + 1]);
-          const delta = new T.Vector3(target.x - pins[p], target.y - pins[p + 1], target.z - pins[p + 2]);
-          if (delta.length() > max) target.set(pins[p], pins[p + 1], pins[p + 2]).add(delta.setLength(max));
+        for (let pin = 0; pin < 2; pin++) {
+          const p = pin * cols * 3;
+          const max = 1.5 * tethers[held * 2 + pin];
+          const dx = target.x - pins[p], dy = target.y - pins[p + 1], dz = target.z - pins[p + 2];
+          const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+          if (length > max) target.set(pins[p] + dx * max / length, pins[p + 1] + dy * max / length, pins[p + 2] + dz * max / length);
         }
         const dx = target.x - positions[k], dy = target.y - positions[k + 1], dz = target.z - positions[k + 2];
         for (let i = 0; i < attribute.count; i++) {
-          if (fixed(i)) continue;
-          const p = i * 3;
-          const distance = Math.hypot(rest[p] - rest[k], rest[p + 1] - rest[k + 1]) / .26;
-          if (distance >= 1) continue;
-          const weight = (1 - distance * distance) ** 2;
+          if (fixed(i) || !pullWeights[i]) continue;
+          const p = i * 3, weight = pullWeights[i];
           positions[p] += dx * weight; positions[p + 1] += dy * weight; positions[p + 2] += dz * weight;
           previous[p] = positions[p]; previous[p + 1] = positions[p + 1]; previous[p + 2] = positions[p + 2];
         }
@@ -199,7 +313,7 @@ async function createFlag(T) {
         const [a, b, length, strength] = links[step % 2 ? links.length - 1 - n : n];
         const ia = a * 3, ib = b * 3;
         const dx = positions[ib] - positions[ia], dy = positions[ib + 1] - positions[ia + 1], dz = positions[ib + 2] - positions[ia + 2];
-        const distance = Math.hypot(dx, dy, dz) || 1;
+        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
         const wa = fixed(a) || a === held ? 0 : 1, wb = fixed(b) || b === held ? 0 : 1;
         if (!(wa + wb)) continue;
         const elasticLength = length * (1 + stretch * (stretchWeights[a] + stretchWeights[b]) * .5);
@@ -207,72 +321,21 @@ async function createFlag(T) {
         positions[ia] += dx * correction * wa; positions[ia + 1] += dy * correction * wa; positions[ia + 2] += dz * correction * wa;
         positions[ib] -= dx * correction * wb; positions[ib + 1] -= dy * correction * wb; positions[ib + 2] -= dz * correction * wb;
       }
-      // Allow controlled stretch while pulling, then ease the tethers back on release.
+      // Cache rest distances; all nine cloths reuse the same solver without repeated square roots for their tethers.
       for (let i = 0; i < attribute.count; i++) {
         if (fixed(i)) continue;
         const k = i * 3;
-        for (const pin of [0, cols]) {
-          const p = pin * 3;
-          const max = (1.015 + stretch * .8) * Math.hypot(rest[k] - rest[p], rest[k + 1] - rest[p + 1]);
+        for (let pin = 0; pin < 2; pin++) {
+          const p = pin * cols * 3;
+          const max = (1.015 + stretch * .8) * tethers[i * 2 + pin];
           const dx = positions[k] - pins[p], dy = positions[k + 1] - pins[p + 1], dz = positions[k + 2] - pins[p + 2];
-          const length = Math.hypot(dx, dy, dz);
-          if (length > max) {
-            const scale = max / length;
+          const lengthSquared = dx * dx + dy * dy + dz * dz;
+          if (lengthSquared > max * max) {
+            const scale = max / Math.sqrt(lengthSquared);
             positions[k] = pins[p] + dx * scale; positions[k + 1] = pins[p + 1] + dy * scale; positions[k + 2] = pins[p + 2] + dz * scale;
           }
         }
       }
     }
   }
-  function render() {
-    attribute.needsUpdate = true;
-    geometry.computeVertexNormals();
-    renderer.render(scene, camera);
-  }
-  function resize() {
-    const { width: w, height: h } = section.getBoundingClientRect();
-    if (!w || !h || failed) return;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.position.z = Math.max(4, 3 / camera.aspect);
-    camera.updateProjectionMatrix();
-    if (visible && !reduced.matches) render();
-  }
-  function tick(now) {
-    frame = 0;
-    if (!visible || document.hidden || reduced.matches || failed) return;
-    simulate(last ? Math.min((now - last) / 1000, 1 / 30) : 1 / 60);
-    last = now;
-    render();
-    frame = requestAnimationFrame(tick);
-  }
-  function sync() {
-    cancelAnimationFrame(frame);
-    frame = 0;
-    last = 0;
-    release();
-    if (visible && !document.hidden && !reduced.matches && !failed) frame = requestAnimationFrame(tick);
-  }
-  const sizing = new ResizeObserver(resize);
-  sizing.observe(section);
-  if ('IntersectionObserver' in window) new IntersectionObserver(entries => {
-    visible = entries[0].isIntersecting;
-    sync();
-  }).observe(section);
-  else visible = true;
-  document.addEventListener('visibilitychange', sync);
-  reduced.addEventListener('change', sync);
-  canvas.addEventListener('webglcontextlost', event => {
-    event.preventDefault();
-    failed = true;
-    sync();
-    section.classList.remove('is-ready');
-    sizing.disconnect();
-    geometry.dispose(); material.dispose(); texture.dispose(); renderer.dispose();
-  });
-  for (let i = 0; i < 90; i++) simulate(1 / 60, false);
-  resize();
-  render();
-  if (!failed) section.classList.add('is-ready');
-  sync();
 }
