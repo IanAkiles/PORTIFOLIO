@@ -13,7 +13,7 @@
 .hero-copy { position: relative; padding-top: clamp(76px, 10vw, 145px); padding-bottom: 70px; }
 .hero-kicker { color: var(--hero-green); margin: 0 0 28px; font: 400 12px/1.4 var(--mono); letter-spacing: .13em; }
 .hero-kicker::before { content: ""; display: inline-block; width: 7px; height: 7px; background: currentColor; margin-right: 12px; }
-.hero-title { color: var(--hero-green); max-width: none; margin: 0; font: 600 clamp(96px, 15.8vw, 238px)/.79 "Inter Tight", var(--sans); letter-spacing: -.075em; }
+.hero-title { color: var(--hero-green); max-width: none; margin: 0; font: 900 clamp(96px, 15.8vw, 238px)/.82 "Outfit", "Inter Tight", var(--sans); letter-spacing: -.03em; }
 .hero-title .line { display: block; }
 .hero-title .line:last-child { margin-left: 14%; }
 .hero-title i { font-style: normal; font-weight: 300; color: #557d49; }
