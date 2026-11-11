@@ -498,6 +498,17 @@ let THREE;
     renderer.setSize(vw, vh, false);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
+    // Upload one texture at a time instead of blocking the first visible frame with all cards.
+    for (const card of cards) {
+      drawOverlay(card);
+      renderer.initTexture(card.overlayTexture);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      renderer.initTexture(card.mediaTexture);
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    if (stage.clientWidth !== vw || stage.clientHeight !== vh) resize();
+    await renderer.compileAsync(scene, camera);
+
     section.classList.add("ribbon-ready");
     section.classList.remove("is-loading");
     readyAt = performance.now();
@@ -729,7 +740,7 @@ let THREE;
       u.u_res.value.set(card.cssW * k, card.cssH * k);
 
       updateCrop(card);
-      drawOverlay(card);
+      if (initialized) drawOverlay(card);
     });
 
     if (!initialized || modeChanged) {

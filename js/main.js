@@ -218,20 +218,21 @@
       let startOffset = 0;
       let lastX = 0;
       let lastT = 0;
-      let visible = true;
+      let visible = !("IntersectionObserver" in window);
       let raf = 0;
       let pointerId = null;
+      let loopWidth = 0;
 
-      const half = () => grid.scrollWidth / 2;
+      const measure = () => { loopWidth = clones[0].offsetLeft - originals[0].offsetLeft; };
       const wrapOffset = () => {
-        const h = half();
+        const h = loopWidth;
         if (!h) return;
         if (offset <= -h) offset += h;
         if (offset > 0) offset -= h;
       };
 
       const frame = () => {
-        raf = requestAnimationFrame(frame);
+        raf = 0;
         if (!visible || document.hidden) return;
         if (!dragging) {
           if (Math.abs(velocity) > 0.1) {
@@ -244,6 +245,16 @@
         }
         wrapOffset();
         grid.style.transform = `translate3d(${offset}px,0,0)`;
+        raf = requestAnimationFrame(frame);
+      };
+
+      const sync = () => {
+        if (visible && !document.hidden) {
+          if (!raf) raf = requestAnimationFrame(frame);
+        } else {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
       };
 
       const onDown = (e) => {
@@ -301,16 +312,23 @@
       wrap.addEventListener("dragstart", (e) => e.preventDefault());
 
       const observer = "IntersectionObserver" in window
-        ? new IntersectionObserver((entries) => { visible = entries[0].isIntersecting; })
+        ? new IntersectionObserver((entries) => { visible = entries[0].isIntersecting; sync(); })
         : null;
       observer?.observe(wrap);
-
-      raf = requestAnimationFrame(frame);
+      const sizing = "ResizeObserver" in window ? new ResizeObserver(measure) : null;
+      sizing?.observe(grid);
+      window.addEventListener("resize", measure);
+      document.addEventListener("visibilitychange", sync);
+      measure();
+      sync();
 
       marquee = {
         destroy() {
           cancelAnimationFrame(raf);
           observer?.disconnect();
+          sizing?.disconnect();
+          window.removeEventListener("resize", measure);
+          document.removeEventListener("visibilitychange", sync);
           wrap.removeEventListener("pointerdown", onDown);
           wrap.removeEventListener("pointermove", onMove);
           wrap.removeEventListener("pointerup", onUp);

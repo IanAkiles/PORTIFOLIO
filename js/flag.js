@@ -173,6 +173,18 @@ async function createFlags(T) {
     render();
     frame = requestAnimationFrame(tick);
   }
+  await renderer.compileAsync(scene, camera);
+  for (const flag of flags) {
+    if (failed) return;
+    renderer.initTexture(flag.mesh.material.map);
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+  // Settle the cloth in small tasks before starting the visible animation.
+  for (let i = 0; i < 90; i++) {
+    if (failed) return;
+    for (const flag of flags) flag.simulate(1 / 60, false);
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
   sizing = new ResizeObserver(resize);
   sizing.observe(section);
   // Image decoding may change an auto-sized fallback after the section has settled.
@@ -184,7 +196,6 @@ async function createFlags(T) {
   else visible = true;
   document.addEventListener('visibilitychange', sync);
   reduced.addEventListener('change', sync);
-  for (let i = 0; i < 90; i++) for (const flag of flags) flag.simulate(1 / 60, false);
   resize();
   render();
   if (!failed) {
@@ -204,9 +215,13 @@ function createCloth(T, image, texture) {
   attribute.setUsage(T.DynamicDrawUsage);
   const positions = attribute.array;
   const rest = positions.slice();
+  const waveSin = new Float64Array(attribute.count), waveCos = new Float64Array(attribute.count);
   for (let i = 0; i < attribute.count; i++) {
     const k = i * 3;
     positions[k + 2] = .022 * Math.sin(rest[k] * 12 + rest[k + 1] * 5);
+    const phase = rest[k] * 6 + rest[k + 1] * 4;
+    waveSin[i] = Math.sin(phase);
+    waveCos[i] = Math.cos(phase);
   }
   const previous = positions.slice(), pins = positions.slice();
   const fixed = i => i === 0 || i === cols;
@@ -281,16 +296,17 @@ function createCloth(T, image, texture) {
     for (let step = 0; step < 6; step++) {
       time += h;
       const damping = Math.exp(-3.5 * h);
+      const sinTime = Math.sin(time * 2.2), cosTime = Math.cos(time * 2.2);
       for (let i = 0; i < attribute.count; i++) {
         if (fixed(i)) continue;
         const k = i * 3;
-        const flutter = wind ? (portrait ? .9 : .65) * Math.sin(rest[k] * 6 + rest[k + 1] * 4 + time * 2.2) : 0;
-        for (let axis = 0; axis < 3; axis++) {
-          const value = positions[k + axis];
-          const acceleration = axis === 1 ? -3.2 : axis === 2 ? flutter + (wind ? .4 : 0) : flutter * .13;
-          positions[k + axis] += T.MathUtils.clamp((value - previous[k + axis]) * damping, -.025, .025) + acceleration * h * h;
-          previous[k + axis] = value;
-        }
+        // sin(phase + time) reuses the fixed spatial wave instead of evaluating every vertex.
+        const flutter = wind ? (portrait ? .9 : .65) * (waveSin[i] * cosTime + waveCos[i] * sinTime) : 0;
+        const x = positions[k], y = positions[k + 1], z = positions[k + 2];
+        positions[k] += T.MathUtils.clamp((x - previous[k]) * damping, -.025, .025) + flutter * .13 * h * h;
+        positions[k + 1] += T.MathUtils.clamp((y - previous[k + 1]) * damping, -.025, .025) - 3.2 * h * h;
+        positions[k + 2] += T.MathUtils.clamp((z - previous[k + 2]) * damping, -.025, .025) + (flutter + (wind ? .4 : 0)) * h * h;
+        previous[k] = x; previous[k + 1] = y; previous[k + 2] = z;
       }
       if (held >= 0) {
         const k = held * 3;
@@ -310,7 +326,8 @@ function createCloth(T, image, texture) {
         }
       }
       for (let n = 0; n < links.length; n++) {
-        const [a, b, length, strength] = links[step % 2 ? links.length - 1 - n : n];
+        const constraint = links[step % 2 ? links.length - 1 - n : n];
+        const a = constraint[0], b = constraint[1], length = constraint[2], strength = constraint[3];
         const ia = a * 3, ib = b * 3;
         const dx = positions[ib] - positions[ia], dy = positions[ib + 1] - positions[ia + 1], dz = positions[ib + 2] - positions[ia + 2];
         const distance = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
