@@ -25,13 +25,28 @@
     if (!document.hidden && !frame) frame = requestAnimationFrame(draw);
   }
 
+  /* Enquanto a página rola, a órbita ganha camada própria no compositor: transform/opacity deixam de re-rasterizar
+     o SVG (até ~2.800 px) a cada quadro. Parado o scroll, a camada é solta e o Chrome rasteriza de novo na escala
+     final, então a imagem em repouso continua nítida. */
+  let settle = 0;
+  function promote() {
+    if (!settle) orbit.style.willChange = "transform, opacity";
+    clearTimeout(settle);
+    settle = setTimeout(() => {
+      settle = 0;
+      orbit.style.willChange = "";
+    }, 160);
+  }
+
   function measure() {
     finish = Math.max(1, contact.getBoundingClientRect().top + window.scrollY - window.innerHeight * .2);
     schedule();
   }
 
   window.addEventListener("scroll", () => {
-    if (!reduced.matches) schedule();
+    if (reduced.matches) return;
+    promote();
+    schedule();
   }, { passive: true });
   window.addEventListener("resize", measure);
   reduced.addEventListener("change", schedule);

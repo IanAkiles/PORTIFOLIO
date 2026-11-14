@@ -42,7 +42,7 @@
   }
 
   const load = () => {
-    import("./mascot.js?v=mascot-20261109").catch((error) => {
+    import("./mascot.js?v=mascot-20261113").catch((error) => {
       console.error("[mascot]", error);
       toStatic();
     });
