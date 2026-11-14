@@ -106,7 +106,8 @@ const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.4, 0.92);
 composer.addPass(bloom);
-composer.addPass(new OutputPass());
+const outputPass = new OutputPass();
+composer.addPass(outputPass);
 
 /* borda de luz (fresnel) */
 function rimMaterial(color, power, strength) {
@@ -824,7 +825,8 @@ function sync() {
 
 new IntersectionObserver(
   (entries) => {
-    visible = entries[0] ? entries[0].isIntersecting : true;
+    /* A notificação mais recente vale; entries[0] pode ser antiga se várias chegarem juntas (o robô ficava parado). */
+    visible = entries.length ? entries[entries.length - 1].isIntersecting : true;
     sync();
   },
   { threshold: 0 }
@@ -844,6 +846,49 @@ await loadModels();
 
 layout();
 robot.scale.setScalar(0.001);
+/* Compila todos os shaders em paralelo (robô, bloom e saída); sem isso o primeiro quadro trava o scroll.
+   O alvo de render precisa ser o mesmo do desenho real, senão o three.js recompila tudo no primeiro quadro. */
+try {
+  const quadScene = new THREE.Scene();
+  const quadGeometry = new THREE.PlaneGeometry(2, 2);
+  for (const material of [
+    bloom.materialHighPassFilter,
+    ...(bloom.separableBlurMaterials || []),
+    bloom.compositeMaterial,
+    bloom.blendMaterial,
+    bloom.basic
+  ]) {
+    if (material) quadScene.add(new THREE.Mesh(quadGeometry, material));
+  }
+  const outputScene = new THREE.Scene();
+  outputScene.add(new THREE.Mesh(quadGeometry, outputPass.material));
+
+  renderer.setRenderTarget(composer.renderTarget1);
+  const toTargets = [renderer.compileAsync(scene, camera), renderer.compileAsync(quadScene, camera)];
+  renderer.setRenderTarget(null);
+  const toScreen = renderer.compileAsync(outputScene, camera);
+  await Promise.all([...toTargets, toScreen]);
+} catch {
+  /* o primeiro quadro compila de forma síncrona */
+  renderer.setRenderTarget(null);
+}
+/* Envia as texturas à GPU uma por vez, ainda sob o loader, em vez de todas no primeiro quadro (~150 ms). */
+try {
+  const textures = new Set();
+  scene.traverse((object) => {
+    for (const material of [].concat(object.material || [])) {
+      for (const value of Object.values(material)) {
+        if (value && value.isTexture && !value.isRenderTargetTexture) textures.add(value);
+      }
+    }
+  });
+  for (const texture of textures) {
+    renderer.initTexture(texture);
+    await new Promise((resolve) => setTimeout(resolve));
+  }
+} catch {
+  /* o primeiro quadro envia as texturas restantes */
+}
 if (loaderEl) loaderEl.classList.add("hide");
 loaded = true;
 sync();
